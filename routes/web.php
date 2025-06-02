@@ -1,31 +1,27 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
-    return response()->json([
-        'service' => 'E-book License API',
-        'version' => '1.0.0',
-        'status' => 'operational',
-        // 'documentation' => url('/api/docs'),
-        // 'endpoints' => [
-        //     'health' => url('/api/health'),
-        //     'activate' => url('/api/license/activate'),
-        //     'verify' => url('/api/license/verify'),
-        //     'deactivate' => url('/api/license/deactivate'),
-        //     'status' => url('/api/license/status'),
-        //     'usage' => url('/api/license/usage'),
-        // ],
-        // 'admin_endpoints' => [
-        //     'generate' => url('/api/admin/license/generate'),
-        //     'analytics' => url('/api/admin/analytics'),
-        // ],
-        // 'server_time' => now()->toISOString(),
-        // 'timezone' => config('app.timezone'),
-        // 'environment' => app()->environment(),
-        // 'contact' => [
-        //     'support' => 'support@ebook-launcher.com',
-        //     'documentation' => 'https://docs.ebook-launcher.com'
-        // ]
-    ], 200, [], JSON_PRETTY_PRINT);
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
 });
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
