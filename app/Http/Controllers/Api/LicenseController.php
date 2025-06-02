@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Services\LicenseService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class LicenseController extends Controller
@@ -20,8 +21,11 @@ class LicenseController extends Controller
      */
     public function activate(Request $request): JsonResponse
     {
+
+
         $validator = Validator::make($request->all(), [
-            'license_key' => 'required|string|regex:/^[A-Z0-9]{2,4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/',
+            // FIXED: Simple regex untuk format tanpa hyphens (DEMO12345678ABC)
+            'license_key' => 'required|string|regex:/^[A-Z0-9]{8,20}$/|min:8|max:20',
             'device_id' => 'required|string|max:255',
             'device_name' => 'nullable|string|max:255',
             'platform' => 'nullable|string|max:50',
@@ -50,13 +54,38 @@ class LicenseController extends Controller
             'hostname' => $request->hostname,
             'username' => $request->username,
             'app_version' => $request->app_version,
-            'ip_address' => $request->ip() ?? $request->ip_address,
-            'user_agent' => $request->userAgent() ?? $request->user_agent
+            'ip_address' => $this->getClientIp($request),
+            'user_agent' => $this->getUserAgent($request)
         ];
 
         $result = $this->licenseService->activateLicense($request->license_key, $deviceData);
 
         return response()->json($result, $result['success'] ? 200 : 400);
+    }
+
+     /**
+     * Get client IP address safely
+     */
+    private function getClientIp(Request $request): ?string
+    {
+        // Try multiple methods to get IP
+        return $request->ip() 
+            ?? $request->ip_address 
+            ?? $request->server('HTTP_X_FORWARDED_FOR')
+            ?? $request->server('HTTP_X_REAL_IP')
+            ?? $request->server('REMOTE_ADDR')
+            ?? null;
+    }
+
+    /**
+     * Get user agent safely
+     */
+    private function getUserAgent(Request $request): ?string
+    {
+        return $request->userAgent() 
+            ?? $request->user_agent 
+            ?? $request->server('HTTP_USER_AGENT')
+            ?? null;
     }
 
     /**

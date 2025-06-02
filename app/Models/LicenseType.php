@@ -73,11 +73,6 @@ class LicenseType extends Model
     }
 
     // Accessors
-    public function getIsLifetimeAttribute(): bool
-    {
-        return $this->duration_days === null || $this->is_lifetime;
-    }
-
     public function getFormattedPriceAttribute(): string
     {
         return number_format($this->price, 2) . ' ' . $this->currency;
@@ -106,6 +101,9 @@ class LicenseType extends Model
         return 'Unknown';
     }
 
+    // REMOVED: Conflicting getIsLifetimeAttribute() accessor
+    // This was causing the error because it conflicts with the database field
+
     // Methods
     public function hasFeature(string $feature): bool
     {
@@ -115,5 +113,14 @@ class LicenseType extends Model
     public function getRestriction(string $key, $default = null)
     {
         return $this->restrictions[$key] ?? $default;
+    }
+
+    /**
+     * Check if this license type is lifetime
+     * Use this method instead of the removed accessor
+     */
+    public function isLifetime(): bool
+    {
+        return $this->is_lifetime || $this->duration_days === null;
     }
 }
