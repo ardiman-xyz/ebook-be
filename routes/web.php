@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -14,9 +15,17 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard routes
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/generate-license', [DashboardController::class, 'generateLicense'])->name('dashboard.generate-license');
+    
+    // License management routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::post('/licenses/generate', [DashboardController::class, 'generateLicense'])->name('licenses.generate');
+        Route::get('/license-types', [DashboardController::class, 'getLicenseTypes'])->name('license-types.index');
+    });
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
