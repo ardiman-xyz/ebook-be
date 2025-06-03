@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Eye, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { router } from "@inertiajs/react";
+import { Button } from "@/components/ui/button";
 
 // Import komponen-komponen terpisah
 import StatsCards from "./_components/StatsCards";
@@ -35,6 +36,8 @@ export default function Dashboard({
 }: DashboardProps) {
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [shouldResetForm, setShouldResetForm] = useState<boolean>(false);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
     const handleGenerateLicense = async (data: any): Promise<void> => {
         setIsGenerating(true);
@@ -78,9 +81,28 @@ export default function Dashboard({
     const copyToClipboard = async (text: string): Promise<void> => {
         try {
             await navigator.clipboard.writeText(text);
+            setCopiedKey(text);
             console.log("Copied to clipboard:", text);
+
+            // Show success feedback
+            setTimeout(() => {
+                setCopiedKey(null);
+            }, 2000);
         } catch (error) {
             console.error("Failed to copy to clipboard:", error);
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand("copy");
+                setCopiedKey(text);
+                setTimeout(() => setCopiedKey(null), 2000);
+            } catch (fallbackError) {
+                console.error("Fallback copy failed:", fallbackError);
+            }
+            document.body.removeChild(textArea);
         }
     };
 
@@ -89,12 +111,68 @@ export default function Dashboard({
         router.visit(`/admin/licenses/${license.id}`);
     };
 
+    const handleRefreshData = (): void => {
+        setIsRefreshing(true);
+        router.reload({
+            onFinish: () => {
+                setIsRefreshing(false);
+            },
+        });
+    };
+
+    const handleBulkActions = (
+        selectedLicenses: string[],
+        action: string
+    ): void => {
+        // Handle bulk actions like suspend, activate, etc.
+        console.log("Bulk action:", action, "on licenses:", selectedLicenses);
+        // You can implement this based on your needs
+    };
+
+    const handleExportLicenses = (): void => {
+        // Handle export functionality
+        console.log("Exporting licenses...");
+        // You can implement CSV/Excel export here
+    };
+
+    const getActiveTabCount = (): number => {
+        return licenses.filter((l) => l.status === "active").length;
+    };
+
+    const getExpiringCount = (): number => {
+        const now = new Date();
+        return licenses.filter((l) => {
+            if (!l.expires_at) return false;
+            const expiryDate = new Date(l.expires_at);
+            const daysUntilExpiry = Math.ceil(
+                (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+            );
+            return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+        }).length;
+    };
+
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    License Management Dashboard
-                </h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                        License Management Dashboard
+                    </h2>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRefreshData}
+                        disabled={isRefreshing}
+                        className="flex items-center gap-2"
+                    >
+                        <RefreshCw
+                            className={`h-4 w-4 ${
+                                isRefreshing ? "animate-spin" : ""
+                            }`}
+                        />
+                        {isRefreshing ? "Refreshing..." : "Refresh"}
+                    </Button>
+                </div>
             }
         >
             <Head title="License Dashboard" />
@@ -109,6 +187,11 @@ export default function Dashboard({
                                 <p className="text-green-800 dark:text-green-200">
                                     {flash.success}
                                 </p>
+                                {copiedKey && (
+                                    <span className="ml-2 text-sm text-green-600">
+                                        (License key copied to clipboard!)
+                                    </span>
+                                )}
                             </div>
                         </div>
                     )}
@@ -124,8 +207,34 @@ export default function Dashboard({
                         </div>
                     )}
 
+                    {/* Copy Success Message */}
+                    {copiedKey && !flash?.success && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5 text-blue-600" />
+                                <p className="text-blue-800 dark:text-blue-200">
+                                    License key copied to clipboard: {copiedKey}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Stats Cards Component */}
                     <StatsCards licenses={licenses} stats={stats} />
+
+                    {/* Warning for expiring licenses */}
+                    {getExpiringCount() > 0 && (
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2">
+                                <XCircle className="h-5 w-5 text-yellow-600" />
+                                <p className="text-yellow-800 dark:text-yellow-200">
+                                    {getExpiringCount()} license(s) will expire
+                                    within 30 days. Please review and renew if
+                                    needed.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Main Content */}
                     <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
@@ -145,6 +254,11 @@ export default function Dashboard({
                                     >
                                         <Eye className="h-4 w-4" />
                                         License List ({licenses.length})
+                                        {getActiveTabCount() > 0 && (
+                                            <span className="ml-1 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                                                {getActiveTabCount()} active
+                                            </span>
+                                        )}
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -169,7 +283,7 @@ export default function Dashboard({
                                     <LicenseList
                                         licenses={licenses}
                                         onCopy={copyToClipboard}
-                                        onViewDetails={handleViewLicenseDetails}
+                                        copiedKey={copiedKey}
                                     />
                                 </TabsContent>
                             </Tabs>
