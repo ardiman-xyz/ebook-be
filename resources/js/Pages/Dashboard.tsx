@@ -239,15 +239,8 @@ export default function Dashboard({
                     {/* Main Content */}
                     <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
                         <div className="p-6">
-                            <Tabs defaultValue="generate" className="w-full">
+                            <Tabs defaultValue="licenses" className="w-full">
                                 <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger
-                                        value="generate"
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Generate License
-                                    </TabsTrigger>
                                     <TabsTrigger
                                         value="licenses"
                                         className="flex items-center gap-2"
@@ -259,6 +252,13 @@ export default function Dashboard({
                                                 {getActiveTabCount()} active
                                             </span>
                                         )}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="generate"
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Generate License
                                     </TabsTrigger>
                                 </TabsList>
 
