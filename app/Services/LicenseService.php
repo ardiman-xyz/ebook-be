@@ -8,6 +8,8 @@ use App\Models\LicenseType;
 use App\Models\Customer;
 use App\Models\LicenseActivation;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -414,4 +416,394 @@ class LicenseService
             'timestamp' => now()->toISOString()
         ];
     }
+
+     /**
+     * Delete a license permanently
+     */
+    public function deleteLicense(License $license, int $deletedBy): array
+    {
+        try {
+            // Check if license can be deleted
+            $deletabilityStatus = $this->checkDeletability($license);
+            
+            if (!$deletabilityStatus['can_delete']) {
+                return $this->errorResponse(
+                    'Cannot delete license: ' . implode(', ', $deletabilityStatus['blocking_reasons']),
+                    ['reasons' => $deletabilityStatus['blocking_reasons']]
+                );
+            }
+
+            // Get license info before deletion for logging and response
+            $licenseInfo = [
+                'license_key' => $license->license_key,
+                'customer_name' => $license->customer->name,
+                'customer_email' => $license->customer->email,
+                'purchase_price' => $license->purchase_price,
+                'activations_count' => $license->activations()->count(),
+                'usage_logs_count' => $license->usageLogs()->count(),
+                'devices_used' => $license->devices_used
+            ];
+
+            // Perform deletion in transaction
+            DB::transaction(function () use ($license, $deletedBy, $licenseInfo) {
+                Log::info('License deletion initiated', [
+                    'license_id' => $license->id,
+                    'license_info' => $licenseInfo,
+                    'deleted_by' => $deletedBy,
+                    'timestamp' => now()
+                ]);
+
+                // Delete related records (cascade should handle this, but being explicit)
+                $license->usageLogs()->delete();
+                $license->activations()->delete();
+                
+                // Delete the license
+                $license->delete();
+            });
+
+            Log::info('License deleted successfully', [
+                'license_key' => $licenseInfo['license_key'],
+                'customer' => $licenseInfo['customer_name'],
+                'impact' => $licenseInfo,
+                'deleted_by' => $deletedBy
+            ]);
+
+            return $this->successResponse([
+                'license_key' => $licenseInfo['license_key'],
+                'customer_name' => $licenseInfo['customer_name'],
+                'impact' => [
+                    'activations_deleted' => $licenseInfo['activations_count'],
+                    'usage_logs_deleted' => $licenseInfo['usage_logs_count'],
+                    'revenue_lost' => $licenseInfo['purchase_price']
+                ]
+            ], "License {$licenseInfo['license_key']} deleted successfully");
+
+        } catch (Exception $e) {
+            Log::error('License deletion failed', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'deleted_by' => $deletedBy
+            ]);
+
+            return $this->errorResponse(
+                'Failed to delete license: ' . $e->getMessage()
+            );
+        }
+    }
+
+    /**
+     * Check if license can be deleted
+     */
+    public function checkDeletability(License $license): array
+    {
+        $canDelete = true;
+        $reasons = [];
+        $warnings = [];
+
+        // Business rules for deletion
+        if ($license->status === 'active' && $license->devices_used > 0) {
+            $canDelete = false;
+            $reasons[] = 'Cannot delete active license with connected devices';
+            $reasons[] = 'Please suspend or revoke the license first';
+        }
+
+        // Warnings (not blocking)
+        if ($license->purchase_price > 0) {
+            $warnings[] = "Revenue loss: " . number_format($license->purchase_price, 0) . " {$license->purchase_currency}";
+        }
+
+        $activationsCount = $license->activations()->count();
+        if ($activationsCount > 0) {
+            $warnings[] = "{$activationsCount} activation records will be deleted";
+        }
+
+        $usageLogsCount = $license->usageLogs()->count();
+        if ($usageLogsCount > 0) {
+            $warnings[] = "{$usageLogsCount} usage logs will be deleted";
+        }
+
+        if ($license->customer->licenses()->count() === 1) {
+            $warnings[] = "This is the customer's only license";
+        }
+
+        return [
+            'can_delete' => $canDelete,
+            'blocking_reasons' => $reasons,
+            'warnings' => $warnings,
+            'impact' => [
+                'activations_count' => $activationsCount,
+                'usage_logs_count' => $usageLogsCount,
+                'revenue_lost' => $license->purchase_price,
+                'customer_name' => $license->customer->name,
+                'customer_email' => $license->customer->email
+            ]
+        ];
+    }
+
+    /**
+     * Suspend a license
+     */
+    public function suspendLicense(License $license, int $suspendedBy): array
+    {
+        try {
+            if ($license->status !== 'active') {
+                return $this->errorResponse('Only active licenses can be suspended');
+            }
+
+            $defaultReason = $reason ?? 'Suspended by admin';
+            $activeDevicesCount = $license->activations()->where('status', 'active')->count();
+
+            DB::transaction(function () use ($license, $defaultReason, $suspendedBy) {
+                // Update license status
+                $license->update([
+                    'status' => 'suspended',
+                    'status_reason' => $defaultReason
+                ]);
+
+                // Deactivate all active devices
+                $license->activations()
+                    ->where('status', 'active')
+                    ->update([
+                        'status' => 'suspended',
+                        'deactivated_at' => now(),
+                        'deactivation_reason' => 'License suspended: ' . $defaultReason
+                    ]);
+                
+                // Reset devices count
+                $license->update(['devices_used' => 0]);
+            });
+
+            Log::info('License suspended successfully', [
+                'license_id' => $license->id,
+                'license_key' => $license->license_key,
+                'reason' => $defaultReason,
+                'suspended_by' => $suspendedBy,
+                'devices_deactivated' => $activeDevicesCount
+            ]);
+
+            return $this->successResponse([
+                'license_key' => $license->license_key,
+                'status' => 'suspended',
+                'devices_deactivated' => $activeDevicesCount
+            ], "License suspended successfully. {$activeDevicesCount} devices deactivated.");
+
+        } catch (\Exception $e) {
+            Log::error('License suspension failed', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'suspended_by' => $suspendedBy
+            ]);
+
+            return $this->errorResponse('Failed to suspend license: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Revoke a license permanently
+     */
+    public function revokeLicense(License $license, int $revokedBy): array
+    {
+        try {
+            if (!in_array($license->status, ['active', 'suspended'])) {
+                return $this->errorResponse('Only active or suspended licenses can be revoked');
+            }
+
+            $defaultReason = $reason ?? 'Revoked by admin';
+            $activeDevicesCount = $license->activations()
+                ->whereIn('status', ['active', 'suspended'])
+                ->count();
+
+            DB::transaction(function () use ($license, $defaultReason, $revokedBy) {
+                // Update license status
+                $license->update([
+                    'status' => 'revoked',
+                    'status_reason' => $defaultReason
+                ]);
+
+                // Deactivate all devices
+                $license->activations()
+                    ->whereIn('status', ['active', 'suspended'])
+                    ->update([
+                        'status' => 'inactive',
+                        'deactivated_at' => now(),
+                        'deactivation_reason' => 'License revoked: ' . $defaultReason
+                    ]);
+                
+                // Reset devices count
+                $license->update(['devices_used' => 0]);
+            });
+
+            Log::info('License revoked successfully', [
+                'license_id' => $license->id,
+                'license_key' => $license->license_key,
+                'reason' => $defaultReason,
+                'revoked_by' => $revokedBy,
+                'devices_deactivated' => $activeDevicesCount
+            ]);
+
+            return $this->successResponse([
+                'license_key' => $license->license_key,
+                'status' => 'revoked',
+                'devices_deactivated' => $activeDevicesCount
+            ], "License revoked permanently. {$activeDevicesCount} devices deactivated.");
+
+        } catch (\Exception $e) {
+            Log::error('License revocation failed', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'revoked_by' => $revokedBy
+            ]);
+
+            return $this->errorResponse('Failed to revoke license: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reactivate a suspended or expired license
+     */
+    public function reactivateLicense(License $license, int $reactivatedBy): array
+    {
+        try {
+            if (!in_array($license->status, ['suspended', 'expired'])) {
+                return $this->errorResponse('Only suspended or expired licenses can be reactivated');
+            }
+
+            // Check if license is not expired
+            if ($license->expires_at && $license->expires_at->isPast()) {
+                return $this->errorResponse(
+                    'Cannot reactivate expired license. Please extend the expiry date first.',
+                    ['expires_at' => $license->expires_at->toISOString()]
+                );
+            }
+
+            $defaultReason = $reason ?? 'Reactivated by admin';
+
+            $license->update([
+                'status' => 'active',
+                'status_reason' => $defaultReason,
+                'last_verified_at' => now()
+            ]);
+
+            Log::info('License reactivated successfully', [
+                'license_id' => $license->id,
+                'license_key' => $license->license_key,
+                'reason' => $defaultReason,
+                'reactivated_by' => $reactivatedBy
+            ]);
+
+            return $this->successResponse([
+                'license_key' => $license->license_key,
+                'status' => 'active',
+                'reactivated_at' => now()->toISOString()
+            ], "License reactivated successfully");
+
+        } catch (\Exception $e) {
+            Log::error('License reactivation failed', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'reactivated_by' => $reactivatedBy
+            ]);
+
+            return $this->errorResponse('Failed to reactivate license: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update license details
+     */
+    public function updateLicense(License $license, array $data, int $updatedBy): array
+    {
+        try {
+            Log::info('License update initiated', [
+                'license_id' => $license->id,
+                'license_key' => $license->license_key,
+                'updated_by' => $updatedBy,
+                'changes' => $data
+            ]);
+
+            DB::transaction(function () use ($license, $data, $updatedBy) {
+                // Update customer information
+                $license->customer->update([
+                    'name' => $data['customer_name'],
+                    'email' => $data['customer_email'],
+                    'customer_type' => $data['customer_type']
+                ]);
+
+                // Prepare license update data
+                $licenseUpdateData = [
+                    'max_devices' => $data['max_devices'],
+                    'purchase_price' => $data['purchase_price'],
+                    'purchase_currency' => $data['purchase_currency'],
+                    'order_id' => $data['order_id'],
+                    'payment_method' => $data['payment_method'],
+                    'admin_notes' => $data['admin_notes'],
+                ];
+
+                // Handle expiry date update
+                if (isset($data['expires_at'])) {
+                    if ($data['expires_at']) {
+                        $licenseUpdateData['expires_at'] = Carbon::parse($data['expires_at']);
+                    } else {
+                        // Setting to null for lifetime
+                        $licenseUpdateData['expires_at'] = null;
+                    }
+                }
+
+                // Check if max_devices is being reduced
+                if ($data['max_devices'] < $license->max_devices) {
+                    $activeDevices = $license->activations()->where('status', 'active')->count();
+                    
+                    if ($activeDevices > $data['max_devices']) {
+                        throw new \Exception(
+                            "Cannot reduce max devices to {$data['max_devices']}. " .
+                            "Currently {$activeDevices} devices are active. " .
+                            "Please deactivate some devices first."
+                        );
+                    }
+                }
+
+                // Update license
+                $license->update($licenseUpdateData);
+
+                Log::info('License updated successfully', [
+                    'license_id' => $license->id,
+                    'license_key' => $license->license_key,
+                    'updated_by' => $updatedBy
+                ]);
+            });
+
+            // Reload relationships for response
+            $license->load(['customer', 'licenseType']);
+
+            return $this->successResponse([
+                'license' => [
+                    'id' => $license->id,
+                    'license_key' => $license->license_key,
+                    'customer' => [
+                        'name' => $license->customer->name,
+                        'email' => $license->customer->email,
+                        'customer_type' => $license->customer->customer_type
+                    ],
+                    'max_devices' => $license->max_devices,
+                    'purchase_price' => $license->purchase_price,
+                    'purchase_currency' => $license->purchase_currency,
+                    'expires_at' => $license->expires_at?->toISOString(),
+                    'updated_at' => $license->updated_at->toISOString()
+                ]
+            ], "License {$license->license_key} updated successfully");
+
+        } catch (\Exception $e) {
+            Log::error('License update failed', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'updated_by' => $updatedBy
+            ]);
+
+            return $this->errorResponse('Failed to update license: ' . $e->getMessage());
+        }
+    }
+
+
 }

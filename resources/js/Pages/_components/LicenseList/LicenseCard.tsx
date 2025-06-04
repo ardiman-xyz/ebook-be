@@ -17,7 +17,7 @@ import {
     XCircle,
     AlertTriangle,
 } from "lucide-react";
-import { License } from "@/types/license";
+import { License, LicenseType } from "@/types/license";
 import { LicenseActionsWithHandlers } from "./LicenseActionsWithHandlers";
 
 interface LicenseCardProps {
@@ -25,6 +25,7 @@ interface LicenseCardProps {
     onCopy: (text: string) => void;
     onViewDetails?: (license: License) => void;
     copiedKey?: string | null;
+    licenseTypes: LicenseType[];
 }
 
 export const LicenseCard: React.FC<LicenseCardProps> = ({
@@ -32,6 +33,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
     onCopy,
     onViewDetails,
     copiedKey,
+    licenseTypes,
 }) => {
     const formatRupiah = (amount: number): string => {
         return new Intl.NumberFormat("id-ID", {
@@ -69,7 +71,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
                 label: "Suspended",
             },
             revoked: {
-                color: "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300",
+                color: "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 hover:bg-gray-700 dark:text-gray-300",
                 icon: XCircle,
                 label: "Revoked",
             },
@@ -258,6 +260,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
                         license={license}
                         onViewDetails={onViewDetails}
                         onCopyKey={handleCopyKey}
+                        licenseTypes={licenseTypes}
                     />
                 </div>
             </div>

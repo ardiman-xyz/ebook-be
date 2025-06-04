@@ -1,6 +1,6 @@
 // components/LicenseList/LicenseActionsWithHandlers.tsx
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { router } from "@inertiajs/react";
@@ -25,37 +25,35 @@ import {
 import {
     MoreVertical,
     Eye,
-    Edit,
-    Trash2,
-    Ban,
-    Shield,
-    ShieldX,
-    Download,
-    RefreshCw,
     Copy,
-    QrCode,
-    FileText,
-    Send,
-    History,
-    User,
-    Calendar,
-    Settings,
+    Ban,
+    ShieldX,
+    Trash2,
+    Shield,
+    Edit,
 } from "lucide-react";
-import { License } from "@/types/license";
+import { License, LicenseType } from "@/types/license";
+import axios from "axios";
+import { EditLicenseModal } from "./EditLicenseModal";
 
 interface LicenseActionsWithHandlersProps {
     license: License;
     onViewDetails?: (license: License) => void;
     onCopyKey?: (license: License) => void;
+    licenseTypes?: LicenseType[];
 }
 
 export const LicenseActionsWithHandlers: React.FC<
     LicenseActionsWithHandlersProps
-> = ({ license, onViewDetails, onCopyKey }) => {
+> = ({ license, onViewDetails, licenseTypes }) => {
     const { toast } = useToast();
-    const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-    const [showSuspendDialog, setShowSuspendDialog] = React.useState(false);
-    const [showRevokeDialog, setShowRevokeDialog] = React.useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showSuspendDialog, setShowSuspendDialog] = useState(false);
+    const [showRevokeDialog, setShowRevokeDialog] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isSuspending, setIsSuspending] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // Determine available actions based on license status
     const canReactivate =
@@ -65,241 +63,255 @@ export const LicenseActionsWithHandlers: React.FC<
         license.status === "active" || license.status === "suspended";
     const canEdit = license.status !== "revoked";
 
-    // ===== BUILT-IN ACTION HANDLERS =====
+    // ===== ACTION HANDLERS =====
+
+    const handleCopyKey = () => {
+        navigator.clipboard.writeText(license.license_key);
+        toast({
+            title: "Copied!",
+            description: `License key ${license.license_key} copied to clipboard.`,
+        });
+    };
 
     const handleEdit = () => {
-        router.visit(`/admin/licenses/${license.id}/edit`);
+        setShowEditModal(true);
     };
 
     const handleSuspend = async () => {
+        setIsSuspending(true);
         try {
-            await router.post(
+            const response = await axios.post(
                 `/admin/licenses/${license.id}/suspend`,
-                {},
                 {
-                    onSuccess: () => {
-                        toast({
-                            title: "License Suspended",
-                            description: `License ${license.license_key} has been suspended successfully.`,
-                        });
-                    },
-                    onError: (errors) => {
-                        toast({
-                            title: "Suspension Failed",
-                            description:
-                                "Unable to suspend license. Please try again.",
-                            variant: "destructive",
-                        });
-                    },
+                    reason: `Suspended by admin`,
                 }
             );
-        } catch (error) {
-            console.error("Error suspending license:", error);
+
+            if (response.data.success) {
+                toast({
+                    title: "License Suspended",
+                    description: response.data.message,
+                });
+                setShowSuspendDialog(false);
+                router.reload();
+            } else {
+                toast({
+                    title: "Suspension Failed",
+                    description: response.data.message,
+                    variant: "destructive",
+                });
+            }
+        } catch (error: any) {
+            console.error("Suspend error:", error);
+
+            let errorMessage = "Unable to suspend license. Please try again.";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+
             toast({
-                title: "Error",
-                description:
-                    "An unexpected error occurred while suspending the license.",
+                title: "Suspension Failed",
+                description: errorMessage,
                 variant: "destructive",
             });
+        } finally {
+            setIsSuspending(false);
+        }
+    };
+
+    // const handleRevoke = async () => {
+    //     setIsRevoking(true);
+    //     try {
+    //         const response = await axios.post<ApiResponse>(
+    //             `/admin/licenses/${license.id}/revoke`,
+    //             {
+    //                 reason: `Revoked by admin`
+    //             }
+    //         );
+
+    //         if (response.data.success) {
+    //             toast({
+    //                 title: "License Revoked",
+    //                 description: response.data.message,
+    //             });
+    //             setShowRevokeDialog(false);
+    //             onLicenseUpdated?.();
+    //         } else {
+    //             toast({
+    //                 title: "Revocation Failed",
+    //                 description: response.data.message,
+    //                 variant: "destructive",
+    //             });
+    //         }
+    //     } catch (error: any) {
+    //         console.error("Revoke error:", error);
+
+    //         let errorMessage = "Unable to revoke license. Please try again.";
+    //         if (error.response?.data?.message) {
+    //             errorMessage = error.response.data.message;
+    //         }
+
+    //         toast({
+    //             title: "Revocation Failed",
+    //             description: errorMessage,
+    //             variant: "destructive",
+    //         });
+    //     } finally {
+    //         setIsRevoking(false);
+    //     }
+    // };
+
+    // const handleReactivate = async () => {
+    //     try {
+    //         const response = await axios.post<ApiResponse>(
+    //             `/admin/licenses/${license.id}/reactivate`,
+    //             {
+    //                 reason: `Reactivated by admin`
+    //             }
+    //         );
+
+    //         if (response.data.success) {
+    //             toast({
+    //                 title: "License Reactivated",
+    //                 description: response.data.message,
+    //             });
+    //             onLicenseUpdated?.();
+    //         } else {
+    //             toast({
+    //                 title: "Reactivation Failed",
+    //                 description: response.data.message,
+    //                 variant: "destructive",
+    //             });
+    //         }
+    //     } catch (error: any) {
+    //         console.error("Reactivate error:", error);
+
+    //         let errorMessage = "Unable to reactivate license. Please try again.";
+    //         if (error.response?.data?.message) {
+    //             errorMessage = error.response.data.message;
+    //         }
+
+    //         toast({
+    //             title: "Reactivation Failed",
+    //             description: errorMessage,
+    //             variant: "destructive",
+    //         });
+    //     }
+    // };
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            const response = await axios.delete(
+                `/admin/licenses/${license.id}`
+            );
+
+            if (response.data.success) {
+                toast({
+                    title: "License Deleted",
+                    description: `License ${license.license_key} has been deleted permanently.`,
+                });
+
+                setShowDeleteDialog(false);
+                router.reload();
+            } else {
+                toast({
+                    title: "Deletion Failed",
+                    description: response.data.message,
+                    variant: "destructive",
+                });
+            }
+        } catch (error: any) {
+            console.error("Delete error:", error);
+
+            let errorMessage = "Unable to delete license. Please try again.";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+
+            toast({
+                title: "Deletion Failed",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     const handleRevoke = async () => {
+        setIsRevoking(true);
         try {
-            await router.post(
+            const response = await axios.post(
                 `/admin/licenses/${license.id}/revoke`,
-                {},
                 {
-                    onSuccess: () => {
-                        toast({
-                            title: "License Revoked",
-                            description: `License ${license.license_key} has been revoked permanently.`,
-                        });
-                    },
-                    onError: (errors) => {
-                        toast({
-                            title: "Revocation Failed",
-                            description:
-                                "Unable to revoke license. Please try again.",
-                            variant: "destructive",
-                        });
-                    },
+                    reason: `Revoked by admin`,
                 }
             );
-        } catch (error) {
-            console.error("Error revoking license:", error);
+            if (response.data.success) {
+                toast({
+                    title: "License Revoked",
+                    description: response.data.message,
+                });
+                setShowRevokeDialog(false);
+                router.reload();
+            } else {
+                toast({
+                    title: "Revocation Failed",
+                    description: response.data.message,
+                    variant: "destructive",
+                });
+            }
+        } catch (error: any) {
+            console.error("Revoke error:", error);
+            let errorMessage = "Unable to revoke license. Please try again.";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
             toast({
-                title: "Error",
-                description:
-                    "An unexpected error occurred while revoking the license.",
+                title: "Revocation Failed",
+                description: errorMessage,
                 variant: "destructive",
             });
+        } finally {
+            setIsRevoking(false);
         }
     };
 
     const handleReactivate = async () => {
         try {
-            await router.post(
+            const response = await axios.post(
                 `/admin/licenses/${license.id}/reactivate`,
-                {},
                 {
-                    onSuccess: () => {
-                        toast({
-                            title: "License Reactivated",
-                            description: `License ${license.license_key} has been reactivated successfully.`,
-                        });
-                    },
-                    onError: (errors) => {
-                        toast({
-                            title: "Reactivation Failed",
-                            description:
-                                "Unable to reactivate license. Please try again.",
-                            variant: "destructive",
-                        });
-                    },
+                    reason: `Reactivated by admin`,
                 }
             );
-        } catch (error) {
-            console.error("Error reactivating license:", error);
-            toast({
-                title: "Error",
-                description:
-                    "An unexpected error occurred while reactivating the license.",
-                variant: "destructive",
-            });
-        }
-    };
-
-    const handleDelete = async () => {
-        try {
-            await router.delete(`/admin/licenses/${license.id}`, {
-                onSuccess: () => {
-                    toast({
-                        title: "License Deleted",
-                        description: `License ${license.license_key} has been deleted permanently.`,
-                    });
-                },
-                onError: (errors) => {
-                    toast({
-                        title: "Deletion Failed",
-                        description:
-                            "Unable to delete license. Please try again.",
-                        variant: "destructive",
-                    });
-                },
-            });
-        } catch (error) {
-            console.error("Error deleting license:", error);
-            toast({
-                title: "Error",
-                description:
-                    "An unexpected error occurred while deleting the license.",
-                variant: "destructive",
-            });
-        }
-    };
-
-    const handleDownloadQR = () => {
-        router.get(
-            `/admin/licenses/${license.id}/qr-code`,
-            {},
-            {
-                onSuccess: () => {
-                    toast({
-                        title: "QR Code Downloaded",
-                        description:
-                            "QR code has been generated and downloaded.",
-                    });
-                },
-                onError: () => {
-                    toast({
-                        title: "Download Failed",
-                        description:
-                            "Unable to generate QR code. Please try again.",
-                        variant: "destructive",
-                    });
-                },
+            if (response.data.success) {
+                toast({
+                    title: "License Reactivated",
+                    description: response.data.message,
+                });
+                router.reload();
+            } else {
+                toast({
+                    title: "Reactivation Failed",
+                    description: response.data.message,
+                    variant: "destructive",
+                });
             }
-        );
-    };
-
-    const handleRefresh = async () => {
-        try {
-            await router.post(
-                `/admin/licenses/${license.id}/refresh`,
-                {},
-                {
-                    onSuccess: () => {
-                        toast({
-                            title: "Status Refreshed",
-                            description: `License ${license.license_key} status has been updated.`,
-                        });
-                    },
-                    onError: (errors) => {
-                        toast({
-                            title: "Refresh Failed",
-                            description:
-                                "Unable to refresh license status. Please try again.",
-                            variant: "destructive",
-                        });
-                    },
-                }
-            );
-        } catch (error) {
-            console.error("Error refreshing license:", error);
+        } catch (error: any) {
+            console.error("Reactivate error:", error);
+            let errorMessage =
+                "Unable to reactivate license. Please try again.";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
             toast({
-                title: "Error",
-                description:
-                    "An unexpected error occurred while refreshing the license.",
+                title: "Reactivation Failed",
+                description: errorMessage,
                 variant: "destructive",
             });
         }
     };
-
-    const handleSendEmail = () => {
-        router.visit(`/admin/licenses/${license.id}/send-email`);
-    };
-
-    const handleViewHistory = () => {
-        router.visit(`/admin/licenses/${license.id}/history`);
-    };
-
-    const handleDownloadReport = () => {
-        router.get(
-            `/admin/licenses/${license.id}/report`,
-            {},
-            {
-                onSuccess: () => {
-                    toast({
-                        title: "Report Downloaded",
-                        description:
-                            "License report has been generated and downloaded.",
-                    });
-                },
-                onError: () => {
-                    toast({
-                        title: "Download Failed",
-                        description:
-                            "Unable to generate report. Please try again.",
-                        variant: "destructive",
-                    });
-                },
-            }
-        );
-    };
-
-    const handleViewCustomer = () => {
-        router.visit(`/admin/customers/${license.customer.id}`);
-    };
-
-    const handleManageActivations = () => {
-        router.visit(`/admin/licenses/${license.id}/activations`);
-    };
-
-    const handleExtendExpiry = () => {
-        router.visit(`/admin/licenses/${license.id}/extend`);
-    };
-
     // Confirmation handlers
     const handleConfirmDelete = () => {
         handleDelete();
@@ -327,11 +339,11 @@ export const LicenseActionsWithHandlers: React.FC<
                         </span>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>License Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
 
-                    {/* View & Information Actions */}
+                    {/* View Details */}
                     {onViewDetails && (
                         <DropdownMenuItem
                             onClick={() => onViewDetails(license)}
@@ -341,26 +353,15 @@ export const LicenseActionsWithHandlers: React.FC<
                         </DropdownMenuItem>
                     )}
 
-                    {onCopyKey && (
-                        <DropdownMenuItem onClick={() => onCopyKey(license)}>
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy License Key
-                        </DropdownMenuItem>
-                    )}
-
-                    <DropdownMenuItem onClick={handleViewHistory}>
-                        <History className="w-4 h-4 mr-2" />
-                        View Usage History
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={handleViewCustomer}>
-                        <User className="w-4 h-4 mr-2" />
-                        View Customer
+                    {/* Copy License Key */}
+                    <DropdownMenuItem onClick={handleCopyKey}>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy License Key
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
 
-                    {/* Management Actions */}
+                    {/* Edit (if not revoked) */}
                     {canEdit && (
                         <DropdownMenuItem onClick={handleEdit}>
                             <Edit className="w-4 h-4 mr-2" />
@@ -368,44 +369,7 @@ export const LicenseActionsWithHandlers: React.FC<
                         </DropdownMenuItem>
                     )}
 
-                    <DropdownMenuItem onClick={handleManageActivations}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        Manage Activations
-                    </DropdownMenuItem>
-
-                    {!license.license_type.is_lifetime && (
-                        <DropdownMenuItem onClick={handleExtendExpiry}>
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Extend Expiry
-                        </DropdownMenuItem>
-                    )}
-
-                    <DropdownMenuItem onClick={handleRefresh}>
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Refresh Status
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    {/* Download & Export Actions */}
-                    <DropdownMenuItem onClick={handleDownloadQR}>
-                        <QrCode className="w-4 h-4 mr-2" />
-                        Download QR Code
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={handleDownloadReport}>
-                        <FileText className="w-4 h-4 mr-2" />
-                        Download Report
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={handleSendEmail}>
-                        <Send className="w-4 h-4 mr-2" />
-                        Send to Customer
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    {/* Status Change Actions */}
+                    {/* Reactivate (if suspended or expired) */}
                     {canReactivate && (
                         <DropdownMenuItem
                             onClick={handleReactivate}
@@ -416,6 +380,7 @@ export const LicenseActionsWithHandlers: React.FC<
                         </DropdownMenuItem>
                     )}
 
+                    {/* Suspend (if active) */}
                     {canSuspend && (
                         <DropdownMenuItem
                             onClick={() => setShowSuspendDialog(true)}
@@ -426,6 +391,7 @@ export const LicenseActionsWithHandlers: React.FC<
                         </DropdownMenuItem>
                     )}
 
+                    {/* Revoke (if active or suspended) */}
                     {canRevoke && (
                         <DropdownMenuItem
                             onClick={() => setShowRevokeDialog(true)}
@@ -438,7 +404,7 @@ export const LicenseActionsWithHandlers: React.FC<
 
                     <DropdownMenuSeparator />
 
-                    {/* Danger Zone */}
+                    {/* Delete */}
                     <DropdownMenuItem
                         onClick={() => setShowDeleteDialog(true)}
                         className="text-red-600 focus:text-red-600 dark:text-red-400"
@@ -448,6 +414,14 @@ export const LicenseActionsWithHandlers: React.FC<
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Edit License Modal */}
+            <EditLicenseModal
+                license={license}
+                licenseTypes={licenseTypes || []} // Pass license types dari props
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+            />
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog
@@ -513,17 +487,16 @@ export const LicenseActionsWithHandlers: React.FC<
                             ?
                             <br />
                             <br />
-                            This will:
+                            This will immediately:
                             <ul className="list-disc ml-4 mt-2 space-y-1">
                                 <li>
-                                    Immediately deactivate all devices (
+                                    Deactivate all devices (
                                     {license.devices_used} active)
                                 </li>
                                 <li>Prevent the license from being used</li>
                                 <li>Block new activations</li>
                                 <li>
-                                    Keep the license data intact for future
-                                    reactivation
+                                    Keep data intact for future reactivation
                                 </li>
                             </ul>
                             <br />

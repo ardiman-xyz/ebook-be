@@ -8,6 +8,7 @@ use App\Services\LicenseService;
 use App\Models\License;
 use App\Models\LicenseActivation;
 use App\Models\Customer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -188,41 +189,236 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Show all licenses
-     */
-    public function showLicenses(Request $request): Response
+    public function suspend(Request $request, License $license): JsonResponse
     {
-        $licenses = License::with(['customer', 'licenseType', 'activations'])
-            ->when($request->search, function ($query, $search) {
-                return $query->where('license_key', 'like', "%{$search}%")
-                    ->orWhereHas('customer', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                          ->orWhere('email', 'like', "%{$search}%");
-                    });
-            })
-            ->when($request->status, function ($query, $status) {
-                return $query->where('status', $status);
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(20)
-            ->appends($request->query());
+        try {
+            $reason = $request->input('reason', 'Suspended by admin: ' . Auth::user()->name);
+            
+            $result = $this->licenseService->suspendLicense(
+                $license,
+                Auth::id(),
+                $reason
+            );
 
-        return Inertia::render('Licenses/Index', [
-            'licenses' => $licenses,
-            'filters' => $request->only(['search', 'status'])
-        ]);
+            $statusCode = $result['success'] ? 200 : 400;
+            return response()->json($result, $statusCode);
+
+        } catch (\Exception $e) {
+            Log::error('License suspension controller error', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'data' => [],
+                'timestamp' => now()->toISOString()
+            ], 500);
+        }
     }
 
     /**
-     * Show license details
+     * Revoke a license
      */
-    public function showLicense(License $license): Response
+    public function revoke(Request $request, License $license): JsonResponse
     {
-        $license->load(['customer', 'licenseType', 'activations', 'usageLogs']);
+        try {
+            $reason = $request->input('reason', 'Revoked by admin: ' . Auth::user()->name);
+            
+            $result = $this->licenseService->revokeLicense(
+                $license,
+                Auth::id(),
+                $reason
+            );
 
-        return Inertia::render('Licenses/Show', [
-            'license' => $license
-        ]);
+            $statusCode = $result['success'] ? 200 : 400;
+            return response()->json($result, $statusCode);
+
+        } catch (\Exception $e) {
+            Log::error('License revocation controller error', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'data' => [],
+                'timestamp' => now()->toISOString()
+            ], 500);
+        }
     }
+
+    /**
+     * Reactivate a license
+     */
+    public function reactivate(Request $request, License $license): JsonResponse
+    {
+        try {
+            $reason = $request->input('reason', 'Reactivated by admin: ' . Auth::user()->name);
+            
+            $result = $this->licenseService->reactivateLicense(
+                $license,
+                Auth::id(),
+                $reason
+            );
+
+            $statusCode = $result['success'] ? 200 : 400;
+            return response()->json($result, $statusCode);
+
+        } catch (\Exception $e) {
+            Log::error('License reactivation controller error', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'data' => [],
+                'timestamp' => now()->toISOString()
+            ], 500);
+        }
+    }
+
+
+    /**
+     * Update a license
+     */
+    public function updateLicense(Request $request, License $license): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'customer_name' => 'required|string|max:255',
+                'customer_email' => 'required|email|max:255',
+                'customer_type' => 'required|in:individual,business,education',
+                'max_devices' => 'required|integer|min:1|max:100',
+                'purchase_price' => 'required|numeric|min:0',
+                'purchase_currency' => 'required|string|size:3',
+                'order_id' => 'nullable|string|max:255',
+                'payment_method' => 'nullable|string|max:100',
+                'admin_notes' => 'nullable|string|max:1000',
+                'expires_at' => 'nullable|date|after:today',
+            ]);
+
+            $result = $this->licenseService->updateLicense($license, $validated, Auth::id());
+
+            $statusCode = $result['success'] ? 200 : 400;
+            return response()->json($result, $statusCode);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'data' => [
+                    'errors' => $e->errors()
+                ],
+                'timestamp' => now()->toISOString()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('License update controller error', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'data' => [],
+                'timestamp' => now()->toISOString()
+            ], 500);
+        }
+    }
+
+
+
+    public function deleteLicense(License $license): JsonResponse
+    {
+        try {
+            Log::info('Delete license request received', [
+                'license_id' => $license->id,
+                'license_key' => $license->license_key,
+                'user_id' => Auth::id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ]);
+
+            // Call service to handle deletion logic
+            $result = $this->licenseService->deleteLicense(
+                $license,
+                Auth::id()
+            );
+
+            // Log the result
+            if ($result['success']) {
+                Log::info('License deletion successful', [
+                    'license_key' => $result['data']['license_key'] ?? 'unknown',
+                    'user_id' => Auth::id()
+                ]);
+            } else {
+                Log::warning('License deletion failed', [
+                    'license_id' => $license->id,
+                    'reason' => $result['message'],
+                    'user_id' => Auth::id()
+                ]);
+            }
+
+            // Return appropriate HTTP status code
+            $statusCode = $result['success'] ? 200 : 400;
+            return response()->json($result, $statusCode);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::warning('License not found for deletion', [
+                'license_id' => $license->id ?? 'unknown',
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'License not found',
+                'data' => [],
+                'timestamp' => now()->toISOString()
+            ], 404);
+
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            Log::warning('Unauthorized license deletion attempt', [
+                'license_id' => $license->id,
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to delete this license',
+                'data' => [],
+                'timestamp' => now()->toISOString()
+            ], 403);
+
+        } catch (\Exception $e) {
+            Log::error('License deletion controller error', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred while deleting the license',
+                'data' => [
+                    'error_code' => 'DELETION_ERROR',
+                    'error_id' => uniqid('del_error_')
+                ],
+                'timestamp' => now()->toISOString()
+            ], 500);
+        }
+    }
+
+
+   
 }

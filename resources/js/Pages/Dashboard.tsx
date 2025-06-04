@@ -284,6 +284,7 @@ export default function Dashboard({
                                         licenses={licenses}
                                         onCopy={copyToClipboard}
                                         copiedKey={copiedKey}
+                                        licenseTypes={licenseTypes}
                                     />
                                 </TabsContent>
                             </Tabs>

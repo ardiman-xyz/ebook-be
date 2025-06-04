@@ -20,7 +20,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 
-import { License } from "@/types/license";
+import { License, LicenseType } from "@/types/license";
 import { LicenseFilters } from "./LicenseList/LicenseFilters";
 import { LicenseSummary } from "./LicenseList/LicenseSummary";
 import { LicenseCard } from "./LicenseList/LicenseCard";
@@ -35,6 +35,7 @@ interface LicenseListProps {
     onViewDetails?: (license: License) => void;
     copiedKey?: string | null;
     itemsPerPage?: number;
+    licenseTypes: LicenseType[];
 }
 
 const LicenseList: React.FC<LicenseListProps> = ({
@@ -43,6 +44,7 @@ const LicenseList: React.FC<LicenseListProps> = ({
     onViewDetails,
     copiedKey,
     itemsPerPage = 10,
+    licenseTypes,
 }) => {
     const {
         searchTerm,
@@ -258,6 +260,7 @@ const LicenseList: React.FC<LicenseListProps> = ({
                                 onCopy={onCopy}
                                 onViewDetails={onViewDetails}
                                 copiedKey={copiedKey}
+                                licenseTypes={licenseTypes}
                             />
                         ))}
                     </div>
