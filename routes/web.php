@@ -32,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/licenses/{license}/reactivate', [DashboardController::class, 'reactivate'])->name('reactivate');
         
     });
+
+    Route::get('/documentation', function () {
+        return Inertia::render('Documentation');
+    })->name('documentation');
 });
 
 Route::middleware('auth')->group(function () {

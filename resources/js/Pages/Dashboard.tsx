@@ -4,7 +4,14 @@ import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Eye, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import {
+    Plus,
+    Eye,
+    CheckCircle,
+    XCircle,
+    RefreshCw,
+    BookOpen,
+} from "lucide-react";
 import { router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 
@@ -151,6 +158,10 @@ export default function Dashboard({
         }).length;
     };
 
+    const handleOpenDocumentation = () => {
+        router.visit("/documentation");
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -158,20 +169,31 @@ export default function Dashboard({
                     <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
                         License Management Dashboard
                     </h2>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRefreshData}
-                        disabled={isRefreshing}
-                        className="flex items-center gap-2"
-                    >
-                        <RefreshCw
-                            className={`h-4 w-4 ${
-                                isRefreshing ? "animate-spin" : ""
-                            }`}
-                        />
-                        {isRefreshing ? "Refreshing..." : "Refresh"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleOpenDocumentation}
+                            className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                        >
+                            <BookOpen className="h-4 w-4" />
+                            Dokumentasi
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRefreshData}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-2"
+                        >
+                            <RefreshCw
+                                className={`h-4 w-4 ${
+                                    isRefreshing ? "animate-spin" : ""
+                                }`}
+                            />
+                            {isRefreshing ? "Refreshing..." : "Refresh"}
+                        </Button>
+                    </div>
                 </div>
             }
         >
