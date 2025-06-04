@@ -485,13 +485,11 @@ const FeaturesSection: React.FC = () => {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 ">
                 {features.map((feature, index) => (
                     <FeatureCard key={index} feature={feature} />
                 ))}
             </div>
-
-            <BenefitsList />
         </section>
     );
 };
@@ -511,44 +509,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ feature }) => {
                     {feature.description}
                 </CardDescription>
             </CardHeader>
-        </Card>
-    );
-};
-
-// Benefits List Component
-const BenefitsList: React.FC = () => {
-    const benefits = [
-        "15 Bab pembelajaran komprehensif",
-        "50+ Template dan tools siap pakai",
-        "Video tutorial bonus",
-        "Studi kasus nyata",
-        "Update gratis selamanya",
-        "Dapat dicetak dan dibagikan",
-    ];
-
-    return (
-        <Card className="border-0 shadow-lg bg-white">
-            <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-gray-900">
-                    Apa yang Akan Anda Dapatkan?
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                    Konten lengkap yang akan mengubah cara Anda mengajar
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {benefits.map((benefit, index) => (
-                        <div
-                            key={index}
-                            className="flex items-center space-x-3"
-                        >
-                            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                            <span className="text-gray-700">{benefit}</span>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
         </Card>
     );
 };
