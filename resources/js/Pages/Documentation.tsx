@@ -86,7 +86,7 @@ export default function Documentation({ auth }: DocumentationProps) {
 
                     {/* Tabs for Documentation Sections */}
                     <Tabs defaultValue="overview" className="space-y-6">
-                        <TabsList className="grid w-full grid-cols-5">
+                        <TabsList className="grid w-full grid-cols-4">
                             <TabsTrigger
                                 value="overview"
                                 className="flex items-center gap-2"
@@ -115,13 +115,13 @@ export default function Documentation({ auth }: DocumentationProps) {
                                 <Settings className="w-4 h-4" />
                                 Pengelolaan
                             </TabsTrigger>
-                            <TabsTrigger
+                            {/* <TabsTrigger
                                 value="videos"
                                 className="flex items-center gap-2"
                             >
                                 <Play className="w-4 h-4" />
                                 Video Tutorial
-                            </TabsTrigger>
+                            </TabsTrigger> */}
                         </TabsList>
 
                         {/* Overview Tab */}

@@ -1,0 +1,682 @@
+# Skrip Narasi Video Tutorial Sistem Manajemen Lisensi
+
+## 1. Cara Membuat License Baru (8:30)
+
+### Intro (0:00 - 0:30)
+Halo semuanya! Selamat datang di tutorial sistem manajemen lisensi. Pada video kali ini, kita akan belajar cara membuat license baru dari awal hingga selesai. Tutorial ini sangat cocok untuk Anda yang baru pertama kali menggunakan sistem ini. Mari kita mulai!
+
+### Persiapan Sebelum Memulai (0:30 - 1:30)
+Sebelum kita mulai membuat license, ada beberapa hal yang perlu dipersiapkan terlebih dahulu:
+
+Pertama, pastikan Anda sudah memiliki data lengkap customer, seperti nama, email, dan tipe customer. 
+
+Kedua, konfirmasi bahwa pembayaran sudah diterima dari customer. Ini penting untuk menghindari kesalahan generate license.
+
+Ketiga, tentukan jenis license yang sesuai dengan kebutuhan dan budget customer. Apakah mereka butuh DEMO, TRIAL, FULL, atau LIFETIME license.
+
+### Langkah 1: Akses Dashboard (1:30 - 2:00)
+Langkah pertama, login ke dashboard admin Anda. Setelah masuk, Anda akan melihat tampilan dashboard utama dengan berbagai statistik license. Di bagian atas, klik tab "Generate License" untuk memulai proses pembuatan license baru.
+
+### Langkah 2: Mengisi Data Customer (2:00 - 3:30)
+Sekarang kita masuk ke form generate license. Bagian pertama adalah informasi customer.
+
+Di field "Customer Name", masukkan nama lengkap customer. Pastikan penulisan nama sudah benar karena ini akan digunakan untuk komunikasi selanjutnya.
+
+Selanjutnya, masukkan email customer di field "Email Address". Double-check alamat email ini karena license key akan dikirim ke email tersebut.
+
+Untuk "Customer Type", pilih kategori yang sesuai:
+- Individual untuk freelancer atau penggunaan personal
+- Business untuk perusahaan atau komersial  
+- Education untuk sekolah atau universitas dengan discount khusus
+
+### Langkah 3: Konfigurasi License (3:30 - 5:00)
+Bagian selanjutnya adalah konfigurasi license. 
+
+Pilih "License Type" sesuai kebutuhan customer:
+- DEMO: 7 hari, 1 device, gratis, untuk testing
+- TRIAL: 30 hari, 1 device, gratis, evaluasi lengkap
+- FULL: 1 tahun, 3 devices, berbayar, akses penuh
+- ENTERPRISE: 3 tahun, 10 devices, untuk perusahaan besar
+- LIFETIME: selamanya, 5 devices, investasi jangka panjang
+
+Setelah memilih license type, field "Max Devices" akan terisi otomatis. Anda bisa menyesuaikan jumlah device sesuai agreement dengan customer.
+
+Harga akan otomatis muncul berdasarkan license type yang dipilih.
+
+### Langkah 4: Informasi Pembayaran (5:00 - 6:00)
+Di bagian payment information, masukkan:
+- Order ID jika ada referensi pemesanan
+- Payment Method seperti credit card, bank transfer, atau e-wallet
+- Upload bukti pembayaran jika diperlukan dengan cara drag-and-drop atau klik area upload
+
+Bagian ini bersifat opsional tapi sangat membantu untuk tracking dan audit.
+
+### Langkah 5: Admin Notes (6:00 - 6:30)
+Bagian terakhir adalah admin notes. Gunakan bagian ini untuk mencatat informasi penting seperti:
+- Catatan khusus tentang customer
+- Promo atau discount yang diberikan
+- Tanggal komunikasi terakhir
+- Atau informasi lain yang relevan
+
+### Langkah 6: Generate License (6:30 - 7:30)
+Setelah semua field terisi dengan benar, klik tombol "Generate License". Sistem akan:
+- Memvalidasi semua data yang dimasukkan
+- Membuat license key unik secara otomatis
+- Menyimpan informasi ke database
+- Menampilkan konfirmasi berhasil
+
+License key yang dihasilkan akan tampil di layar dengan format seperti "FULL2024ABC12345". Key ini unik dan tidak akan pernah duplikat.
+
+### Langkah 7: Mengirim ke Customer (7:30 - 8:15)
+Setelah license berhasil dibuat, saatnya mengirim ke customer. Copy license key dengan klik tombol copy di sebelahnya.
+
+Kirim license key melalui channel yang aman seperti:
+- Email pribadi ke customer
+- WhatsApp atau Telegram personal
+- Dashboard customer jika ada
+- SMS untuk license key yang pendek
+
+Hindari mengirim melalui media sosial, forum public, atau platform review.
+
+### Penutup (8:15 - 8:30)
+Dan selesai! Anda telah berhasil membuat license pertama. Jangan lupa untuk backup license key di tempat yang aman dan monitor status license secara berkala. Terima kasih sudah menonton, dan sampai jumpa di tutorial selanjutnya!
+
+---
+
+## 2. Memahami Jenis-jenis License (12:15)
+
+### Intro (0:00 - 0:45)
+Halo! Selamat datang kembali di channel tutorial sistem manajemen lisensi. Pada video kali ini, kita akan membahas secara detail tentang berbagai jenis license yang tersedia dalam sistem. Memahami perbedaan setiap jenis license sangat penting agar Anda bisa memberikan rekomendasi yang tepat kepada customer sesuai kebutuhan dan budget mereka.
+
+### Overview Sistem License (0:45 - 2:00)
+Sebelum masuk ke detail, mari kita pahami dulu konsep dasar sistem license. 
+
+Sistem license berfungsi seperti "kunci digital" yang mengontrol siapa saja yang bisa menggunakan software Anda. Setiap license memiliki karakteristik unik berupa:
+- Durasi atau masa berlaku
+- Jumlah maksimal device yang bisa digunakan
+- Fitur yang bisa diakses
+- Harga sesuai value yang diberikan
+
+Dengan memahami karakteristik ini, Anda bisa menentukan strategi pricing dan targeting customer yang efektif.
+
+### DEMO License (2:00 - 3:30)
+Mari kita mulai dengan DEMO License.
+
+DEMO License adalah jenis license gratis dengan durasi 7 hari dan hanya bisa digunakan di 1 device. License ini dirancang khusus untuk testing dan demonstrasi.
+
+Fitur yang tersedia terbatas dan biasanya ada watermark atau batasan tertentu. Tujuannya agar customer bisa merasakan core functionality software tanpa akses penuh.
+
+DEMO License sangat cocok untuk:
+- Customer yang ragu dan ingin test dulu
+- Developer yang mau integrasi sistem Anda
+- Presentasi demo ke calon customer
+- Marketing campaign untuk menarik customer baru
+
+Keuntungan menggunakan DEMO: zero risk bagi customer, mudah untuk convert ke license berbayar, dan bisa menjadi lead generation yang efektif.
+
+### TRIAL License (3:30 - 5:00)
+Selanjutnya adalah TRIAL License.
+
+TRIAL License juga gratis tapi dengan durasi yang lebih panjang yaitu 30 hari. Masih terbatas 1 device, namun customer bisa mengakses hampir semua fitur dengan beberapa batasan.
+
+Perbedaan utama TRIAL dengan DEMO adalah customer bisa melakukan evaluasi yang lebih mendalam dan comprehensive. Mereka bisa test semua workflow dan use case mereka.
+
+TRIAL License ideal untuk:
+- Customer yang serius mempertimbangkan pembelian
+- Business evaluation yang butuh waktu lebih lama
+- Proof of concept untuk project besar
+- Customer yang butuh approval dari tim atau management
+
+Tips: Berikan support yang baik selama periode trial dan follow up secara berkala untuk meningkatkan conversion rate.
+
+### FULL License (5:00 - 7:00)
+Sekarang kita masuk ke license berbayar pertama, yaitu FULL License.
+
+FULL License memiliki harga 750 ribu rupiah dengan durasi 1 tahun dan maksimal 3 devices. Customer mendapat akses penuh ke semua fitur tanpa batasan apapun.
+
+Ini adalah produk mainstream yang cocok untuk:
+- Individual user atau freelancer
+- Small business dengan tim kecil
+- Customer yang butuh fleksibilitas multi-device
+- Penggunaan professional sehari-hari
+
+Value proposition FULL License:
+- Akses complete feature set
+- Fleksibilitas 3 devices untuk work-from-anywhere
+- Harga yang reasonable untuk individual atau small business
+- Support standard via email
+
+FULL License biasanya menjadi best seller karena balance yang baik antara harga, fitur, dan fleksibilitas device.
+
+### ENTERPRISE License (7:00 - 9:00)
+ENTERPRISE License adalah solusi untuk perusahaan besar dengan harga 3 juta rupiah.
+
+Keunggulan utama:
+- Durasi 3 tahun untuk long-term investment
+- Maksimal 10 devices untuk team yang lebih besar
+- Fitur premium plus admin panel untuk management
+- Priority support dengan response time lebih cepat
+
+Target customer ENTERPRISE:
+- Perusahaan dengan 10+ karyawan
+- Organisasi yang butuh centralized management
+- Business yang memerlukan advanced reporting
+- Corporate dengan budget yang adequate
+
+Fitur admin panel memungkinkan:
+- User management dan role assignment
+- Usage monitoring dan reporting
+- Centralized license distribution
+- Audit trail untuk compliance
+
+### LIFETIME License (9:00 - 11:00)
+Terakhir adalah LIFETIME License dengan harga 2.5 juta rupiah.
+
+Konsep lifetime adalah "bayar sekali, pakai selamanya". Customer mendapat:
+- Akses unlimited tanpa expire
+- Maksimal 5 devices untuk fleksibilitas tinggi
+- Semua fitur plus premium support
+- Update gratis selamanya
+
+LIFETIME License menarik untuk:
+- Customer yang ingin long-term investment
+- Business dengan cash flow yang stabil
+- Early adopters yang percaya dengan produk Anda
+- Customer yang tidak mau repot renewal tahunan
+
+Dari sisi business, LIFETIME License memberikan:
+- Cash flow yang immediate dan besar
+- Customer loyalty yang tinggi
+- Word-of-mouth marketing yang positif
+- Reduced churn rate
+
+### Perbandingan dan Rekomendasi (11:00 - 12:00)
+Mari kita bandingkan semua license type:
+
+Untuk new customer: Mulai dengan DEMO atau TRIAL
+Untuk individual/freelancer: FULL License paling optimal
+Untuk small business: FULL atau upgrade ke ENTERPRISE
+Untuk large corporation: ENTERPRISE License
+Untuk loyal customer: Tawarkan LIFETIME sebagai investment
+
+Faktor yang perlu dipertimbangkan:
+- Budget customer
+- Jumlah user/device yang dibutuhkan
+- Durasi penggunaan yang direncanakan
+- Level support yang diinginkan
+- Fitur advanced yang diperlukan
+
+### Penutup (12:00 - 12:15)
+Itulah penjelasan lengkap tentang jenis-jenis license dalam sistem. Pemahaman yang baik tentang karakteristik masing-masing license akan membantu Anda memberikan rekomendasi yang tepat dan meningkatkan customer satisfaction. Di video selanjutnya, kita akan belajar tentang device management. Sampai jumpa!
+
+---
+
+## 3. Mengelola Device & Max Device Limit (10:45)
+
+### Intro (0:00 - 0:30)
+Halo! Kembali lagi di tutorial sistem manajemen lisensi. Pada video kali ini, kita akan membahas topik yang sangat penting yaitu device management dan max device limit. Ini adalah salah satu fitur core yang sering ditanyakan customer, jadi pastikan Anda memahaminya dengan baik.
+
+### Konsep Dasar Max Device (0:30 - 2:00)
+Max Device adalah batas maksimal perangkat yang bisa menggunakan 1 license key secara bersamaan. Ini bukan berarti license hanya bisa diinstall di sejumlah device tersebut, tapi hanya sejumlah itu yang bisa aktif di waktu yang sama.
+
+Sebagai contoh, jika customer punya FULL License dengan max 3 devices, mereka bisa install software di 5 device berbeda, tapi hanya 3 yang boleh active/online di waktu bersamaan.
+
+Sistem mendeteksi device berdasarkan:
+- Hardware fingerprint
+- MAC address
+- Processor ID
+- Kombinasi hardware lainnya
+
+Setiap kali software dijalankan, sistem akan check apakah device limit sudah tercapai atau belum.
+
+### Yang Dihitung Sebagai Device (2:00 - 3:30)
+Mari kita bahas apa saja yang dihitung sebagai device terpisah:
+
+Yang DIHITUNG sebagai device berbeda:
+- Laptop atau PC desktop
+- Smartphone jika software support mobile
+- Tablet jika ada versi tablet
+- Virtual machine atau VPS
+- Different user accounts di komputer yang sama
+- Dual boot system dengan OS berbeda
+
+Yang TIDAK DIHITUNG sebagai device terpisah:
+- Multiple browser di komputer yang sama
+- Reinstall software di device yang sama
+- Update atau upgrade OS di device yang sama
+- Multiple user login di 1 komputer
+- Temporary file atau cache
+
+Jadi customer tidak perlu khawatir jika mereka reinstall OS atau update software. Device fingerprint akan tetap sama.
+
+### Cara Kerja Device Activation (3:30 - 5:00)
+Proses aktivasi device bekerja seperti ini:
+
+Ketika customer pertama kali menjalankan software di device baru:
+1. Software akan request aktivasi ke server
+2. Server check apakah license key valid dan aktif
+3. Server check berapa device yang sudah aktif
+4. Jika masih dalam limit, aktivasi berhasil
+5. Device baru akan tercatat dalam database
+6. Jika sudah penuh, akan muncul error "Device limit exceeded"
+
+Customer bisa melihat daftar device yang aktif di software dan melakukan deactivation manual jika perlu pindah device.
+
+### Troubleshooting Device Limit Issues (5:00 - 7:00)
+Masalah yang paling sering terjadi adalah "Device limit exceeded". Berikut cara menanganinya:
+
+Pertama, check status license di dashboard admin:
+- Apakah license masih active?
+- Berapa device yang tercatat aktif?
+- Kapan last activation masing-masing device?
+
+Kedua, identifikasi penyebab:
+- Customer install di device baru tanpa deactivate yang lama
+- Device lama rusak jadi tidak bisa deactivate
+- Customer lupa sudah install dimana saja
+- Ada device yang "hantu" karena crash system
+
+Ketiga, solusi yang bisa dilakukan:
+- Minta customer deactivate device yang tidak terpakai
+- Admin bisa reset device count dari dashboard
+- Temporary increase device limit untuk emergency
+- Educate customer tentang proper device management
+
+### Device Management dari Sisi Admin (7:00 - 8:30)
+Sebagai admin, Anda punya kontrol penuh atas device management:
+
+Di dashboard license details, Anda bisa melihat:
+- List semua device yang aktif
+- Platform dan OS masing-masing device
+- Kapan terakhir kali used
+- IP address dan location approximate
+
+Actions yang bisa dilakukan admin:
+- Deactivate device tertentu remotely
+- Reset semua device activations
+- Increase/decrease max device limit
+- Block device tertentu jika ada abuse
+
+Best practice untuk admin:
+- Monitor device usage patterns secara berkala
+- Set alert jika ada unusual activity
+- Educate customer tentang device management
+- Document policy yang jelas tentang device sharing
+
+### Skenario Umum dan Solusinya (8:30 - 10:00)
+Mari kita bahas beberapa skenario yang sering terjadi:
+
+Skenario 1: Customer ganti laptop baru
+Solusi: Deactivate laptop lama dari software, atau admin reset dari dashboard. License bisa langsung digunakan di laptop baru.
+
+Skenario 2: Laptop customer rusak mendadak
+Solusi: Admin bisa force deactivate device yang rusak dari dashboard sehingga slot device freed up untuk device pengganti.
+
+Skenario 3: Customer butuh temporary device untuk traveling
+Solusi: Temporary increase device limit, atau minta customer deactivate device yang tidak urgent sementara.
+
+Skenario 4: Suspect license sharing/abuse
+Solusi: Check device patterns, jika ada geografis yang tidak masuk akal, investigasi lebih lanjut dan suspend license jika terbukti abuse.
+
+### Tips Optimasi Device Management (10:00 - 10:30)
+Beberapa tips untuk customer dan admin:
+
+Untuk Customer:
+- Keep track device mana saja yang aktif
+- Deactivate device yang sudah tidak dipakai
+- Contact admin jika ada masalah device limit
+- Jangan share license key dengan orang lain
+
+Untuk Admin:
+- Set device limit yang reasonable sesuai license type
+- Monitor unusual patterns secara proactive
+- Provide clear documentation tentang device policy
+- Responsive dalam menangani device issues
+
+### Penutup (10:30 - 10:45)
+Device management adalah aspek penting dalam license system yang perlu dipahami dengan baik. Dengan pengelolaan yang proper, customer bisa menggunakan software dengan fleksibel sesuai kebutuhan mereka. Di video selanjutnya, kita akan belajar tentang suspend dan revoke license. Terima kasih sudah menonton!
+
+---
+
+## 4. Suspend vs Revoke: Kapan dan Bagaimana (9:20)
+
+### Intro (0:00 - 0:30)
+Halo semuanya! Welcome back ke channel tutorial sistem manajemen lisensi. Pada video ini, kita akan membahas dua action penting dalam license management yaitu Suspend dan Revoke. Kedua action ini punya fungsi dan konsekuensi yang berbeda, jadi penting banget untuk memahami kapan dan bagaimana menggunakannya.
+
+### Perbedaan Fundamental (0:30 - 1:30)
+Mari kita pahami perbedaan mendasar antara Suspend dan Revoke:
+
+SUSPEND adalah tindakan menonaktifkan license secara SEMENTARA. License status berubah menjadi "Suspended" tapi semua data tetap aman dan license bisa diaktifkan kembali kapan saja oleh admin.
+
+REVOKE adalah tindakan mencabut license secara PERMANEN. License status berubah menjadi "Revoked" dan tidak bisa diaktifkan lagi selamanya. Ini adalah final action yang irreversible.
+
+Think of it seperti ini: Suspend = pause, Revoke = stop permanently.
+
+### Kapan Menggunakan Suspend (1:30 - 3:30)
+Suspend license digunakan dalam situasi berikut:
+
+Pertama, ketika customer telat bayar atau ada masalah pembayaran. Misalnya license expired tapi customer masih nego untuk renewal. Suspend memberikan pressure tapi tetap memberikan kesempatan untuk resolve.
+
+Kedua, ketika ada pelanggaran terms yang masih bisa diperbaiki. Contohnya customer install di lebih banyak device dari yang diizinkan. Suspend while investigating, dan reactivate setelah mereka comply.
+
+Ketiga, untuk maintenance atau investigasi system. Jika ada suspicious activity atau technical issue, suspend dulu untuk prevent further problem.
+
+Keempat, sebagai warning step sebelum action yang lebih berat. Suspend dengan clear communication tentang apa yang harus dilakukan customer untuk reactivation.
+
+Keuntungan Suspend:
+- Reversible action, ada second chance
+- Data dan history tetap intact
+- Relationship dengan customer masih bisa diperbaiki
+- Good for temporary disciplinary action
+
+### Kapan Menggunakan Revoke (3:30 - 5:00)
+Revoke license digunakan untuk situasi yang lebih serius:
+
+Pertama, pelanggaran berat seperti license sharing ke banyak orang atau commercial redistribution tanpa izin.
+
+Kedua, fraud atau chargeback yang terbukti. Jika customer melakukan dispute pembayaran padahal sudah menggunakan software.
+
+Ketiga, customer request permanent cancellation dan minta refund. Untuk prevent future use after refund processed.
+
+Keempat, repeated violation setelah diberikan warning. Jika customer sudah di-suspend beberapa kali tapi tetap melanggar.
+
+Kelima, security breach atau attempt to reverse engineer yang membahayakan system integrity.
+
+Revoke adalah nuclear option yang sebaiknya digunakan hanya untuk extreme cases.
+
+### Proses Suspend License (5:00 - 6:30)
+Mari kita lihat step-by-step cara suspend license:
+
+Dari dashboard admin:
+1. Cari license yang akan di-suspend
+2. Klik action menu dan pilih "Suspend License"
+3. System akan minta confirmation dan alasan suspend
+4. Masukkan reason yang clear, misalnya "Late payment - 30 days overdue"
+5. Confirm suspension
+
+Yang terjadi setelah suspend:
+- License status berubah ke "Suspended"
+- Semua device customer langsung ter-disconnect
+- Customer tidak bisa activate device baru
+- Software akan show message "License suspended, contact admin"
+- Data usage history tetap tersimpan
+- Admin bisa reactivate kapan saja
+
+### Proses Revoke License (6:30 - 7:30)
+Proses revoke license:
+
+1. Select license yang akan di-revoke
+2. Klik "Revoke License" di action menu
+3. System akan warning bahwa ini permanent action
+4. Masukkan detailed reason untuk audit trail
+5. Double confirmation karena irreversible
+6. Execute revocation
+
+Efek revoke license:
+- Status berubah ke "Revoked" permanently
+- Semua device disconnect immediately
+- License key becomes invalid forever
+- Customer tidak bisa gunakan software lagi
+- Data tetap ada di system untuk audit purposes
+- TIDAK bisa di-reactivate by anyone
+
+### Cara Reactivate Suspended License (7:30 - 8:30)
+Untuk reactivate license yang di-suspend:
+
+1. Pastikan issue yang menyebabkan suspension sudah resolved
+2. Go to license details di dashboard
+3. Klik "Reactivate License"
+4. Masukkan notes tentang resolution, contoh: "Payment received, customer compliant"
+5. Confirm reactivation
+
+Setelah reactivate:
+- Status kembali ke "Active"
+- Customer bisa langsung activate devices lagi
+- Semua previous device activations masih valid
+- Customer dapat notification bahwa license sudah active
+
+Important: Communicate dengan customer sebelum dan sesudah reactivation untuk maintain good relationship.
+
+### Best Practices dan Tips (8:30 - 9:00)
+Beberapa best practices:
+
+Sebelum Suspend/Revoke:
+- Always communicate dengan customer first
+- Document semua correspondence
+- Give clear deadline untuk resolution
+- Explain consequences dengan jelas
+
+Untuk Suspend:
+- Set reasonable timeline untuk resolution
+- Follow up secara berkala
+- Provide clear path untuk reactivation
+- Monitor customer response dan cooperation
+
+Untuk Revoke:
+- Only use untuk serious violations
+- Ensure proper investigation sudah dilakukan
+- Document everything untuk legal protection
+- Consider reputation impact on business
+
+### Penutup (9:00 - 9:20)
+Suspend dan Revoke adalah tools yang powerful dalam license management. Gunakan dengan bijak dan proportional dengan severity of the issue. Remember: Suspend untuk temporary issues, Revoke untuk permanent violations. Selalu prioritize communication dan relationship preservation when possible. Next video kita akan bahas troubleshooting license activation. See you!
+
+---
+
+## 5. Troubleshooting License Activation (15:30)
+
+### Intro (0:00 - 0:45)
+Halo! Selamat datang di tutorial troubleshooting license activation. Ini adalah skill yang sangat penting karena activation issues adalah salah satu masalah yang paling sering dialami customer. Sebagai admin, Anda harus bisa mendiagnosis dan menyelesaikan masalah dengan cepat agar customer satisfaction tetap tinggi.
+
+### Common Activation Errors (0:45 - 2:30)
+Mari kita kenali error messages yang paling sering terjadi:
+
+"Invalid License Key" - License key salah atau tidak ditemukan di database
+"License Expired" - License sudah melewati masa berlaku
+"Device Limit Exceeded" - Sudah mencapai maksimal device yang diizinkan
+"License Suspended" - License di-suspend oleh admin
+"License Revoked" - License sudah dicabut permanently
+"Connection Failed" - Tidak bisa connect ke license server
+"Activation Failed" - Generic error saat proses aktivasi
+
+Setiap error memiliki root cause dan solution yang berbeda. Sebagai admin, Anda harus bisa quickly identify problem dan provide appropriate solution.
+
+### Systematic Troubleshooting Approach (2:30 - 4:00)
+Gunakan pendekatan systematic untuk troubleshooting:
+
+Step 1: Gather Information
+- License key yang digunakan customer
+- Error message yang exact
+- Device type dan operating system
+- Kapan terakhir kali working
+- Apa yang customer lakukan sebelum error
+
+Step 2: Verify License Status
+- Check di dashboard admin
+- Confirm license key existence
+- Verify status: active, suspended, expired, revoked
+- Check device count dan usage
+
+Step 3: Check Technical Requirements
+- Internet connectivity customer
+- Firewall atau antivirus blocking
+- Software version compatibility
+- System requirements terpenuhi
+
+Step 4: Implement Solution
+- Apply appropriate fix based pada root cause
+- Test dengan customer
+- Document solution untuk future reference
+
+### Troubleshooting "Invalid License Key" (4:00 - 5:30)
+Ini adalah error paling common yang dialami customer:
+
+Possible Causes:
+- Customer salah ketik license key
+- Copy-paste dengan extra spaces atau characters
+- License key expired atau suspended
+- Customer menggunakan old atau fake license key
+
+Troubleshooting Steps:
+1. Minta customer copy-paste license key di chat/email
+2. Check apakah ada extra spaces di awal/akhir
+3. Verify license key existence di database
+4. Confirm status license di dashboard
+5. Jika license valid, minta customer re-enter carefully
+
+Pro Tips:
+- Ajarkan customer untuk copy-paste instead of manual typing
+- Check for hidden characters yang tidak visible
+- Verify case sensitivity jika applicable
+- Provide screenshot untuk guidance
+
+### Troubleshooting "Device Limit Exceeded" (5:30 - 7:00)
+Error ini terjadi ketika customer sudah mencapai max device limit:
+
+Investigation Steps:
+1. Check berapa device yang currently active
+2. Review device list dan last used dates
+3. Identify device mana yang masih diperlukan customer
+4. Look for duplicate atau abandoned devices
+
+Solutions Available:
+- Deactivate old/unused devices from admin panel
+- Guide customer untuk deactivate dari software
+- Temporary increase device limit jika reasonable
+- Upgrade customer ke license dengan device limit lebih tinggi
+
+Customer Education:
+- Explain concept max device limit
+- Show how to manage devices dari software
+- Provide best practices untuk device management
+- Set expectation yang clear tentang policy
+
+### Network dan Connectivity Issues (7:00 - 8:30)
+Activation memerlukan internet connection ke license server:
+
+Common Network Problems:
+- Customer behind corporate firewall
+- Antivirus atau security software blocking connection
+- ISP atau country-level restrictions
+- Temporary server downtime
+
+Diagnostic Questions untuk Customer:
+- Apakah internet connection stable?
+- Ada firewall atau security software yang aktif?
+- Bisa access website lain dengan normal?
+- Error terjadi di semua device atau specific device saja?
+
+Solutions:
+- Provide alternative activation methods
+- Whitelist license server di firewall/antivirus
+- Use different network untuk testing
+- Implement offline activation untuk extreme cases
+
+### Software Version dan Compatibility (8:30 - 10:00)
+Activation issues bisa disebabkan incompatibility:
+
+Version-Related Problems:
+- Customer menggunakan outdated software version
+- License key untuk version yang different
+- Operating system tidak supported
+- Missing dependencies atau runtime
+
+Troubleshooting Approach:
+1. Confirm software version yang digunakan customer
+2. Check compatibility matrix di documentation
+3. Verify system requirements terpenuhi
+4. Guide customer untuk update jika necessary
+
+Migration Issues:
+- Customer upgrade dari trial ke paid version
+- Moving license dari old device ke new device
+- Changing dari individual ke business license
+- Platform migration (Windows ke Mac, etc.)
+
+### Advanced Troubleshooting Techniques (10:00 - 12:00)
+Untuk masalah yang complex, gunakan advanced techniques:
+
+Log Analysis:
+- Minta customer kirim error logs
+- Analyze activation requests di server logs
+- Look for patterns atau recurring issues
+- Identify specific failure points
+
+Remote Assistance:
+- Use screen sharing untuk real-time troubleshooting
+- Guide customer step-by-step secara visual
+- Identify user error atau misunderstanding
+- Provide immediate feedback dan correction
+
+Database Investigation:
+- Check license history di backend
+- Review activation attempts dan patterns
+- Identify data corruption atau inconsistencies
+- Cross-reference dengan payment records
+
+API Testing:
+- Test activation endpoint secara manual
+- Verify server response untuk specific license
+- Check rate limiting atau security restrictions
+- Validate license key format dan encoding
+
+### Communication Best Practices (12:00 - 13:30)
+Effective communication crucial untuk successful troubleshooting:
+
+Customer Interaction Guidelines:
+- Be patient dan empathetic
+- Use clear, non-technical language
+- Provide step-by-step instructions
+- Confirm understanding di setiap step
+
+Documentation:
+- Record semua troubleshooting steps
+- Document solutions untuk knowledge base
+- Note customer-specific issues atau workarounds
+- Update FAQ based pada common problems
+
+Follow-up:
+- Confirm issue sudah resolved completely
+- Provide additional resources atau documentation
+- Set expectations untuk future support
+- Request feedback untuk process improvement
+
+### Preventive Measures (13:30 - 14:30)
+Better prevent problems daripada fixing them:
+
+Customer Education:
+- Provide comprehensive activation guide
+- Create video tutorials untuk common procedures
+- Maintain updated FAQ dan knowledge base
+- Proactive communication tentang system updates
+
+System Improvements:
+- Implement better error messages yang actionable
+- Add diagnostic tools dalam software
+- Improve activation flow user experience
+- Monitor system performance dan reliability
+
+Documentation:
+- Keep license documentation up-to-date
+- Provide troubleshooting guides untuk customers
+- Maintain internal troubleshooting procedures
+- Regular training untuk support team
+
+### Creating Escalation Procedures (14:30 - 15:15)
+Untuk issues yang tidak bisa resolved di first level:
+
+Escalation Criteria:
+- Technical issues yang require developer intervention
+- License corruption atau database issues
+- Legal atau compliance-related problems
+- VIP customers dengan urgent needs
+
+Escalation Process:
+1. Document semua troubleshooting steps yang sudah dilakukan
+2. Provide complete information ke senior support
+3. Set clear timeline untuk resolution
+4. Maintain communication dengan customer during escalation
+5. Follow up untuk ensure resolution
+
+### Penutup (15:15 - 15:30)
+Troubleshooting license activation requires systematic approach, technical
