@@ -18,6 +18,7 @@ import {
     AlertTriangle,
 } from "lucide-react";
 import { License } from "@/types/license";
+import { LicenseActionsWithHandlers } from "./LicenseActionsWithHandlers";
 
 interface LicenseCardProps {
     license: License;
@@ -136,6 +137,10 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
 
     const isCopied = copiedKey === license.license_key;
 
+    const handleCopyKey = () => {
+        //
+    };
+
     return (
         <div
             className={`p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600 transition-colors ${
@@ -248,9 +253,12 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
                             View Details
                         </Button>
                     )}
-                    <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                    </Button>
+
+                    <LicenseActionsWithHandlers
+                        license={license}
+                        onViewDetails={onViewDetails}
+                        onCopyKey={handleCopyKey}
+                    />
                 </div>
             </div>
 
