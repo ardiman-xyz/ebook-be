@@ -17,14 +17,159 @@ class LicenseService
 {
     /**
      * Activate license key
-     */
-    public function activateLicense(string $licenseKey, array $deviceData)
+    */
+
+     public function activateLicense(string $licenseKey, array $deviceData)
     {
         try {
-            Log::info('License activation attempt', [
-                'license_key' => $licenseKey,
-                'device_id' => $deviceData['device_id'] ?? 'unknown'
+            // 1. Find license
+            $license = License::where('license_key', $licenseKey)->first();
+            
+            if (!$license) {
+                return $this->errorResponse('License key not found in database');
+            }
+
+            // Check if license is active
+            if ($license->status !== 'active') {
+                return $this->errorResponse('License is not active. Status: ' . $license->status);
+            }
+
+            // 2. Check if expired
+            if ($license->expires_at && $license->expires_at->isPast()) {
+                return $this->errorResponse('License has expired on ' . $license->expires_at->format('Y-m-d H:i:s'));
+            }
+
+            // 3. Check if this specific device is already activated
+            $existingActivation = $license->activations()
+                ->where('device_id', $deviceData['device_id'])
+                ->first();
+
+            if ($existingActivation) {
+                // If device already activated and active, just update the record
+                if ($existingActivation->status === 'active') {
+                    $existingActivation->update([
+                        'device_name' => $deviceData['device_name'] ?? $existingActivation->device_name,
+                        'device_platform' => $deviceData['platform'] ?? $existingActivation->device_platform,
+                        'device_arch' => $deviceData['arch'] ?? $existingActivation->device_arch,
+                        'hostname' => $deviceData['hostname'] ?? $existingActivation->hostname,
+                        'username' => $deviceData['username'] ?? $existingActivation->username,
+                        'device_details' => array_merge($existingActivation->device_details ?? [], $deviceData),
+                        'last_used_at' => now(),
+                        'app_version' => $deviceData['app_version'] ?? $existingActivation->app_version,
+                        'ip_address' => $deviceData['ip_address'] ?? $existingActivation->ip_address,
+                        'user_agent' => $deviceData['user_agent'] ?? $existingActivation->user_agent
+                    ]);
+
+                    // Update license verification time
+                    $license->update(['last_verified_at' => now()]);
+
+                    return $this->successResponse([
+                        'type' => $license->licenseType->code,
+                        'expires_at' => $license->expires_at?->toISOString(),
+                        'features' => $license->features,
+                        'restrictions' => $license->restrictions,
+                        'max_devices' => $license->max_devices,
+                        'devices_used' => $license->fresh()->devices_used,
+                        'is_lifetime' => $license->expires_at === null,
+                        'reactivated' => true // Flag to indicate this was a reactivation
+                    ], 'Device already activated - information updated successfully');
+                }
+
+                // If device was previously activated but now inactive/suspended, reactivate it
+                if (in_array($existingActivation->status, ['inactive', 'suspended'])) {
+                    $existingActivation->update([
+                        'status' => 'active',
+                        'device_name' => $deviceData['device_name'] ?? $existingActivation->device_name,
+                        'device_platform' => $deviceData['platform'] ?? $existingActivation->device_platform,
+                        'device_arch' => $deviceData['arch'] ?? $existingActivation->device_arch,
+                        'hostname' => $deviceData['hostname'] ?? $existingActivation->hostname,
+                        'username' => $deviceData['username'] ?? $existingActivation->username,
+                        'device_details' => array_merge($existingActivation->device_details ?? [], $deviceData),
+                        'last_used_at' => now(),
+                        'app_version' => $deviceData['app_version'] ?? $existingActivation->app_version,
+                        'ip_address' => $deviceData['ip_address'] ?? $existingActivation->ip_address,
+                        'user_agent' => $deviceData['user_agent'] ?? $existingActivation->user_agent,
+                        'deactivated_at' => null,
+                        'deactivation_reason' => null
+                    ]);
+
+                    // Update license
+                    $license->update([
+                        'activated_at' => $license->activated_at ?? now(),
+                        'last_verified_at' => now(),
+                        'devices_used' => $license->activations()->where('status', 'active')->count()
+                    ]);
+
+                    return $this->successResponse([
+                        'type' => $license->licenseType->code,
+                        'expires_at' => $license->expires_at?->toISOString(),
+                        'features' => $license->features,
+                        'restrictions' => $license->restrictions,
+                        'max_devices' => $license->max_devices,
+                        'devices_used' => $license->fresh()->devices_used,
+                        'is_lifetime' => $license->expires_at === null,
+                        'reactivated' => true
+                    ], 'Device reactivated successfully');
+                }
+            }
+
+            // 4. Check device limit only for NEW devices (not previously activated)
+            $currentActiveDevices = $license->activations()->where('status', 'active')->count();
+
+            if ($currentActiveDevices >= $license->max_devices) {
+                return $this->errorResponse(
+                    "Device limit reached. Maximum {$license->max_devices} devices allowed. " .
+                    "Currently {$currentActiveDevices} different devices are active. " .
+                    "Please deactivate a device first or contact support."
+                );
+            }
+
+            // 5. Activate NEW device
+            $activation = $license->activations()->create([
+                'device_id' => $deviceData['device_id'],
+                'device_name' => $deviceData['device_name'] ?? null,
+                'device_platform' => $deviceData['platform'] ?? null,
+                'device_arch' => $deviceData['arch'] ?? null,
+                'hostname' => $deviceData['hostname'] ?? null,
+                'username' => $deviceData['username'] ?? null,
+                'device_details' => $deviceData,
+                'status' => 'active',
+                'activated_at' => now(),
+                'last_used_at' => now(),
+                'app_version' => $deviceData['app_version'] ?? null,
+                'ip_address' => $deviceData['ip_address'] ?? null,
+                'user_agent' => $deviceData['user_agent'] ?? null,
+                'first_seen_at' => now()
             ]);
+
+            // Update license
+            $license->update([
+                'activated_at' => $license->activated_at ?? now(),
+                'last_verified_at' => now(),
+                'devices_used' => $license->activations()->where('status', 'active')->count()
+            ]);
+
+            // 6. Return success response
+            return $this->successResponse([
+                'type' => $license->licenseType->code,
+                'expires_at' => $license->expires_at?->toISOString(),
+                'features' => $license->features,
+                'restrictions' => $license->restrictions,
+                'max_devices' => $license->max_devices,
+                'devices_used' => $license->fresh()->devices_used,
+                'is_lifetime' => $license->expires_at === null,
+                'reactivated' => false // This is a new activation
+            ], 'License activated successfully');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse('Activation failed: ' . $e->getMessage());
+        }
+    }
+
+    public function activateLicenseOld(string $licenseKey, array $deviceData)
+    {
+        try {
+          
 
             // 1. Find license
             $license = License::where('license_key', $licenseKey)->first();
@@ -34,12 +179,7 @@ class LicenseService
                 return $this->errorResponse('License key not found in database');
             }
 
-            Log::info('License found', [
-                'license_id' => $license->id,
-                'status' => $license->status,
-                'customer_id' => $license->customer_id
-            ]);
-
+           
             // Check if license is active
             if ($license->status !== 'active') {
                 Log::warning('License not active', [
@@ -51,19 +191,13 @@ class LicenseService
 
             // 2. Check if expired
             if ($license->expires_at && $license->expires_at->isPast()) {
-                Log::warning('License expired', [
-                    'license_key' => $licenseKey,
-                    'expires_at' => $license->expires_at
-                ]);
+               
                 return $this->errorResponse('License has expired on ' . $license->expires_at);
             }
 
             // 3. Check device limit
             $currentActivations = $license->activations()->where('status', 'active')->count();
-            Log::info('Device limit check', [
-                'current_activations' => $currentActivations,
-                'max_devices' => $license->max_devices
-            ]);
+           
 
             if ($currentActivations >= $license->max_devices) {
                 // Check if this device already activated
@@ -81,19 +215,15 @@ class LicenseService
                     return $this->errorResponse('Device limit exceeded. Maximum ' . $license->max_devices . ' devices allowed. Currently ' . $currentActivations . ' devices active.');
                 }
 
-                Log::info('Device already activated, updating existing activation');
             }
 
             // 4. Activate license
-            Log::info('Attempting to activate license');
             $activated = $license->activate($deviceData['device_id'], $deviceData);
             
             if (!$activated) {
-                Log::error('License activation failed in model method');
                 return $this->errorResponse('Failed to activate license - activation method returned false');
             }
 
-            Log::info('License activated successfully');
 
             // 5. Return success response
             return $this->successResponse([
@@ -107,11 +237,7 @@ class LicenseService
             ], 'License activated successfully');
 
         } catch (\Exception $e) {
-            Log::error('License activation exception', [
-                'license_key' => $licenseKey,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+           
             return $this->errorResponse('Activation failed: ' . $e->getMessage());
         }
     }
@@ -158,11 +284,97 @@ class LicenseService
         }
     }
 
+     /**
+     * Verify license for WEB ACCESS - TAMBAHAN BARU
+     */
+    public function verifyWebLicense(string $licenseKey, string $deviceId, array $webData = []): array
+    {
+        try {
+            // 1. Find license
+            $license = License::where('license_key', $licenseKey)->first();
+            
+            if (!$license) {
+                return $this->errorResponse('License key not found in database');
+            }
+
+            // 2. Check if license is active
+            if ($license->status !== 'active') {
+                return $this->errorResponse('License is not active. Status: ' . $license->status);
+            }
+
+            // 3. Check if expired
+            if ($license->expires_at && $license->expires_at->isPast()) {
+                return $this->errorResponse('License has expired on ' . $license->expires_at);
+            }
+
+            // 4. Check or create device activation for web
+            $activation = $license->activations()->where('device_id', $deviceId)->first();
+
+            if (!$activation) {
+                // Check device limit
+                $currentActivations = $license->activations()->where('status', 'active')->count();
+                
+                if ($currentActivations >= $license->max_devices) {
+                    return $this->errorResponse('Device limit reached for this license. Maximum ' . $license->max_devices . ' devices allowed.');
+                }
+
+                // Create new web activation
+                $activation = $license->activations()->create([
+                    'device_id' => $deviceId,
+                    'device_name' => $webData['device_name'] ?? 'Web Browser',
+                    'device_platform' => $webData['platform'] ?? 'web',
+                    'hostname' => parse_url($webData['referrer'] ?? '', PHP_URL_HOST) ?? 'web',
+                    'username' => 'web_user',
+                    'device_details' => $webData,
+                    'status' => 'active',
+                    'activated_at' => now(),
+                    'last_used_at' => now(),
+                    'app_version' => '1.0.0-web',
+                    'ip_address' => $webData['ip_address'] ?? null,
+                    'user_agent' => $webData['user_agent'] ?? null
+                ]);
+
+                $license->increment('devices_used');
+            } else {
+                // Update existing activation
+                $activation->update([
+                    'last_used_at' => now(),
+                    'status' => 'active',
+                    'usage_count' => ($activation->usage_count ?? 0) + 1
+                ]);
+            }
+
+            // 5. Update license verification time
+            $license->update(['last_verified_at' => now()]);
+
+            // 6. Return success response with web-specific features
+            return $this->successResponse([
+                'type' => $license->licenseType->code,
+                'expires_at' => $license->expires_at?->toISOString(),
+                'features' => array_merge($license->features, ['web_access']),
+                'restrictions' => array_merge($license->restrictions, [
+                    'web_access' => true,
+                    'print_disabled' => true,
+                    'download_disabled' => true
+                ]),
+                'max_devices' => $license->max_devices,
+                'devices_used' => $license->fresh()->devices_used,
+                'is_lifetime' => $license->expires_at === null
+            ], 'License verified successfully for web access');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse('Web verification failed: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Deactivate license from device
      */
     public function deactivateLicense(string $licenseKey, string $deviceId): array
     {
+
+        Log::info(["Deactivate Licence : " => $licenseKey, "device_id" => $deviceId]);
+
         try {
             $license = License::where('license_key', $licenseKey)->first();
             
@@ -386,7 +598,7 @@ class LicenseService
     {
         $type = strtoupper($type);
         $year = date('Y');
-        $serial = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $serial = strtoupper(substr(bin2hex(random_bytes(4)), 0, 7));
         
         return "{$type}{$year}{$serial}";
     }

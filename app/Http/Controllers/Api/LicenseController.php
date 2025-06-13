@@ -22,6 +22,8 @@ class LicenseController extends Controller
     public function activate(Request $request): JsonResponse
     {
 
+        Log::info($request->all());
+
 
         $validator = Validator::make($request->all(), [
             // FIXED: Simple regex untuk format tanpa hyphens (DEMO12345678ABC)
@@ -114,6 +116,46 @@ class LicenseController extends Controller
 
         return response()->json($result, $result['success'] ? 200 : 400);
     }
+
+
+     /**
+     * Verify license for WEB BROWSER ACCESS - TAMBAHAN INI
+     */
+        public function verifyWeb(Request $request): JsonResponse
+        {
+            $validator = Validator::make($request->all(), [
+                'license_key' => 'required|string|min:8|max:20',
+                'device_id' => 'required|string|max:255',
+                'access_type' => 'required|string',
+                'user_agent' => 'nullable|string|max:500',
+                'platform' => 'nullable|string|max:50',
+                'device_name' => 'nullable|string|max:255'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors(),
+                    'timestamp' => now()->toISOString()
+                ], 422);
+            }
+
+            $result = $this->licenseService->verifyWebLicense(
+                $request->license_key,
+                $request->device_id,
+                [
+                    'access_type' => $request->access_type,
+                    'user_agent' => $this->getUserAgent($request),
+                    'ip_address' => $this->getClientIp($request),
+                    'platform' => $request->platform ?? 'web',
+                    'device_name' => $request->device_name ?? 'Web Browser',
+                    'referrer' => $request->referrer
+                ]
+            );
+
+            return response()->json($result, $result['success'] ? 200 : 400);
+        }
 
     /**
      * Deactivate license

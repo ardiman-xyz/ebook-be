@@ -17,6 +17,7 @@ Route::prefix('license')->group(function () {
     Route::post('/deactivate', [LicenseController::class, 'deactivate']);
     Route::post('/status', [LicenseController::class, 'status']);
     Route::post('/usage', [LicenseController::class, 'logUsage']);
+    Route::post('/verify-web', [LicenseController::class, 'verifyWeb']);
 });
 
 // Admin endpoints - protected (uncomment when adding auth)
