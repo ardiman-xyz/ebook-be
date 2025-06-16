@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\LicenseTypeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/licenses/{license}/suspend', [DashboardController::class, 'suspend'])->name('suspend');
         Route::post('/licenses/{license}/revoke', [DashboardController::class, 'revoke'])->name('revoke');
         Route::post('/licenses/{license}/reactivate', [DashboardController::class, 'reactivate'])->name('reactivate');
+
+        Route::get('/', [LicenseTypeController::class, 'index'])->name('type.index');
+        
+        // API routes (untuk AJAX)
+        Route::post('/', [LicenseTypeController::class, 'store'])->name('type.store');
+        Route::put('/{licenseType}', [LicenseTypeController::class, 'update'])->name('type.update'); 
+        Route::delete('/{licenseType}', [LicenseTypeController::class, 'destroy'])->name('type.destroy');
+        Route::patch('/{licenseType}/toggle-status', [LicenseTypeController::class, 'toggleStatus'])->name('type.toggle-status');
+
         
     });
 

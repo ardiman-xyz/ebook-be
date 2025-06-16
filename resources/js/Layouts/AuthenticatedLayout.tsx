@@ -34,6 +34,12 @@ export default function Authenticated({
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    href={route("admin.type.index")}
+                                    active={route().current("admin.type.index")}
+                                >
+                                    Licency Type
+                                </NavLink>
                             </div>
                         </div>
 
