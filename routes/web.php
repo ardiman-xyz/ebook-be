@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,13 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::prefix('downloads')->name('downloads.')->group(function () {
+    Route::get('/', [DownloadController::class, 'index'])->name('index');
+    Route::get('/{platform}/{file}', [DownloadController::class, 'download'])->name('file');
+    Route::get('/api/info', [DownloadController::class, 'api'])->name('api');
+});
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard routes

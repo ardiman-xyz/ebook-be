@@ -29,6 +29,7 @@ import {
     ZoomOut,
 } from "lucide-react";
 import { Head } from "@inertiajs/react";
+import PublicLayout from "@/components/PublicLayout";
 
 // Type Definitions
 interface Feature {
@@ -640,21 +641,23 @@ const EbookLandingPage: React.FC = () => {
     return (
         <>
             <Head title="Home" />
-            <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-                <Header />
+            <PublicLayout>
+                <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+                    {/* <Header /> */}
 
-                <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <HeroSection />
-                    <FeaturesSection />
-                    <PricingSection />
-                    <StatsSection />
-                </main>
+                    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <HeroSection />
+                        <FeaturesSection />
+                        <PricingSection />
+                        <StatsSection />
+                    </main>
 
-                <Footer />
+                    <Footer />
 
-                {/* WhatsApp Floating Button */}
-                <WhatsAppFloat />
-            </div>
+                    {/* WhatsApp Floating Button */}
+                    <WhatsAppFloat />
+                </div>
+            </PublicLayout>
         </>
     );
 };
