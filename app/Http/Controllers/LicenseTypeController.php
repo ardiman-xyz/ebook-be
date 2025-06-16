@@ -64,7 +64,7 @@ class LicenseTypeController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        try {
+        // try {
             // Manual validation untuk sekarang (bisa dibuat LicenseTypeRequest nanti)
             $validated = $request->validate([
                 'name' => 'required|string|min:3|max:100|unique:license_types,name',
@@ -105,12 +105,7 @@ class LicenseTypeController extends Controller
 
             $licenseType = $this->licenseTypeService->createLicenseType($validated);
 
-            Log::info('License type created successfully via API', [
-                'license_type_id' => $licenseType->id,
-                'code' => $licenseType->code,
-                'name' => $licenseType->name,
-                'created_by' => Auth::id()
-            ]);
+         
 
             // Format response data
             $responseData = [
@@ -135,28 +130,6 @@ class LicenseTypeController extends Controller
                 'timestamp' => now()->toISOString()
             ], 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data tidak valid',
-                'errors' => $e->errors(),
-                'timestamp' => now()->toISOString()
-            ], 422);
-
-        } catch (\Exception $e) {
-            Log::error('Failed to create license type', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => Auth::id(),
-                'data' => $request->all()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal membuat tipe lisensi. Silakan coba lagi.',
-                'timestamp' => now()->toISOString()
-            ], 500);
-        }
     }
 
     /**

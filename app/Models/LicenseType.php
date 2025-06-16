@@ -10,24 +10,7 @@ class LicenseType extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'code',
-        'name',
-        'description',
-        'duration_days',
-        'max_devices',
-        'price',
-        'currency',
-        'features',
-        'restrictions',
-        'is_trial',
-        'is_lifetime',
-        'requires_online_activation',
-        'allows_offline_usage',
-        'offline_grace_days',
-        'is_active',
-        'sort_order'
-    ];
+   
 
     protected $casts = [
         'features' => 'array',

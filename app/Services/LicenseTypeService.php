@@ -64,7 +64,7 @@ class LicenseTypeService
                 'price' => $finalPrice,
                 'original_price' => $data['original_price'],
                 'currency' => 'IDR',
-                'has_discount' => $data['has_discount'] ?? false,
+                'has_discount' => $data['has_discount'] === true ? 1 : 0,
                 'discount_percentage' => $data['discount_percentage'] ?? 0,
                 'duration' => $data['duration'],
                 'duration_days' => $this->convertDurationToDays($data['duration']),

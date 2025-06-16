@@ -43,29 +43,38 @@ import { Separator } from "@/components/ui/separator";
 import RupiahInput from "./RupiahInput";
 import PercentageInput from "./PercentageInput";
 
-// TypeScript interfaces
+// TypeScript interfaces - Updated to match backend schema
 interface LicenseType {
     id: number;
+    code?: string;
     name: string;
     price: number;
-    originalPrice: number;
-    duration: string;
-    devices: number;
+    original_price: number;
+    duration?: string;
+    duration_text?: string;
+    max_devices: number;
     type: "Trial" | "Standard" | "Lifetime" | "Enterprise";
-    hasDiscount: boolean;
-    discountPercentage: number;
+    has_discount: boolean;
+    discount_percentage: number;
+    is_active: boolean;
+    description?: string;
+    formatted_price?: string;
+    formatted_original_price?: string;
+    savings_amount?: number;
+    is_discounted?: boolean;
+    currency?: string;
 }
 
-// Zod validation schema
+// Zod validation schema - Updated field names
 const licenseTypeSchema = z.object({
     name: z
         .string()
         .min(1, "Nama lisensi wajib diisi")
         .min(3, "Nama lisensi minimal 3 karakter")
         .max(50, "Nama lisensi maksimal 50 karakter"),
-    originalPrice: z.number().min(0, "Harga asli tidak boleh negatif"),
-    hasDiscount: z.boolean(),
-    discountPercentage: z
+    original_price: z.number().min(0, "Harga asli tidak boleh negatif"),
+    has_discount: z.boolean(),
+    discount_percentage: z
         .number()
         .min(0, "Diskon tidak boleh negatif")
         .max(100, "Diskon tidak boleh lebih dari 100%"),
@@ -73,7 +82,7 @@ const licenseTypeSchema = z.object({
         .string()
         .min(1, "Durasi wajib diisi")
         .max(20, "Durasi maksimal 20 karakter"),
-    devices: z
+    max_devices: z
         .number()
         .min(1, "Minimal 1 perangkat")
         .max(100, "Maksimal 100 perangkat"),
@@ -87,7 +96,7 @@ type FormData = z.infer<typeof licenseTypeSchema>;
 interface LicenseTypeFormProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: LicenseType) => void;
+    onSave: (data: LicenseType) => Promise<void>;
     editingLicenseType?: LicenseType | null;
     isLoading?: boolean;
 }
@@ -103,11 +112,11 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
         resolver: zodResolver(licenseTypeSchema),
         defaultValues: {
             name: "",
-            originalPrice: 0,
-            hasDiscount: false,
-            discountPercentage: 0,
+            original_price: 0,
+            has_discount: false,
+            discount_percentage: 0,
             duration: "",
-            devices: 1,
+            max_devices: 1,
             type: "Standard",
         },
     });
@@ -116,12 +125,12 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
     const watchedValues = watch();
 
     // Calculate final price based on discount
-    const finalPrice = watchedValues.hasDiscount
-        ? watchedValues.originalPrice *
-          (1 - watchedValues.discountPercentage / 100)
-        : watchedValues.originalPrice;
+    const finalPrice = watchedValues.has_discount
+        ? watchedValues.original_price *
+          (1 - watchedValues.discount_percentage / 100)
+        : watchedValues.original_price;
 
-    const discountAmount = watchedValues.originalPrice - finalPrice;
+    const discountAmount = watchedValues.original_price - finalPrice;
 
     // Format currency
     const formatRupiah = (amount: number): string => {
@@ -134,33 +143,30 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
         }).format(amount);
     };
 
-    // Format number only (without currency symbol)
-    const formatNumber = (amount: number): string => {
-        if (amount === 0) return "0";
-        return amount.toLocaleString("id-ID");
-    };
-
     // Reset form when modal opens/closes or editing different license type
     useEffect(() => {
         if (isOpen) {
             if (editingLicenseType) {
                 reset({
                     name: editingLicenseType.name,
-                    originalPrice: editingLicenseType.originalPrice,
-                    hasDiscount: editingLicenseType.hasDiscount,
-                    discountPercentage: editingLicenseType.discountPercentage,
-                    duration: editingLicenseType.duration,
-                    devices: editingLicenseType.devices,
+                    original_price: editingLicenseType.original_price,
+                    has_discount: editingLicenseType.has_discount,
+                    discount_percentage: editingLicenseType.discount_percentage,
+                    duration:
+                        editingLicenseType.duration ||
+                        editingLicenseType.duration_text ||
+                        "",
+                    max_devices: editingLicenseType.max_devices,
                     type: editingLicenseType.type,
                 });
             } else {
                 reset({
                     name: "",
-                    originalPrice: 0,
-                    hasDiscount: false,
-                    discountPercentage: 0,
+                    original_price: 0,
+                    has_discount: false,
+                    discount_percentage: 0,
                     duration: "",
-                    devices: 1,
+                    max_devices: 1,
                     type: "Standard",
                 });
             }
@@ -169,26 +175,28 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
 
     // Handle discount toggle
     const handleDiscountToggle = (checked: boolean) => {
-        setValue("hasDiscount", checked);
+        setValue("has_discount", checked);
         if (!checked) {
-            setValue("discountPercentage", 0);
+            setValue("discount_percentage", 0);
         }
     };
 
-    const onSubmit = (data: FormData) => {
+    const onSubmit = async (data: FormData) => {
         const licenseTypeData: LicenseType = {
             id: editingLicenseType?.id || 0,
             name: data.name,
             price: finalPrice,
-            originalPrice: data.originalPrice,
+            original_price: data.original_price,
             duration: data.duration,
-            devices: data.devices,
+            max_devices: data.max_devices,
             type: data.type,
-            hasDiscount: data.hasDiscount,
-            discountPercentage: data.discountPercentage,
+            has_discount: data.has_discount,
+            discount_percentage: data.discount_percentage,
+            is_active: true,
+            description: "",
         };
 
-        onSave(licenseTypeData);
+        await onSave(licenseTypeData);
     };
 
     const getTypeColor = (type: string): string => {
@@ -253,7 +261,7 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                         <FormLabel>Jenis Lisensi</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
-                                            defaultValue={field.value}
+                                            value={field.value}
                                             disabled={isLoading}
                                         >
                                             <FormControl>
@@ -297,7 +305,7 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                             <CardContent className="space-y-4">
                                 <FormField
                                     control={form.control}
-                                    name="originalPrice"
+                                    name="original_price"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>
@@ -327,7 +335,7 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                 {/* Discount Section */}
                                 <FormField
                                     control={form.control}
-                                    name="hasDiscount"
+                                    name="has_discount"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                             <div className="space-y-0.5">
@@ -358,10 +366,10 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                     )}
                                 />
 
-                                {watchedValues.hasDiscount && (
+                                {watchedValues.has_discount && (
                                     <FormField
                                         control={form.control}
-                                        name="discountPercentage"
+                                        name="discount_percentage"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>
@@ -391,7 +399,7 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                 )}
 
                                 {/* Price Summary */}
-                                {watchedValues.originalPrice > 0 && (
+                                {watchedValues.original_price > 0 && (
                                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                                         <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-3">
                                             💰 Price Summary
@@ -403,27 +411,27 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                                 </span>
                                                 <span
                                                     className={
-                                                        watchedValues.hasDiscount &&
-                                                        watchedValues.discountPercentage >
+                                                        watchedValues.has_discount &&
+                                                        watchedValues.discount_percentage >
                                                             0
                                                             ? "line-through text-gray-500"
                                                             : "font-medium text-gray-900 dark:text-white"
                                                     }
                                                 >
                                                     {formatRupiah(
-                                                        watchedValues.originalPrice
+                                                        watchedValues.original_price
                                                     )}
                                                 </span>
                                             </div>
-                                            {watchedValues.hasDiscount &&
-                                                watchedValues.discountPercentage >
+                                            {watchedValues.has_discount &&
+                                                watchedValues.discount_percentage >
                                                     0 && (
                                                     <>
                                                         <div className="flex justify-between text-red-600">
                                                             <span>
                                                                 Discount (
                                                                 {
-                                                                    watchedValues.discountPercentage
+                                                                    watchedValues.discount_percentage
                                                                 }
                                                                 %):
                                                             </span>
@@ -482,7 +490,7 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
 
                             <FormField
                                 control={form.control}
-                                name="devices"
+                                name="max_devices"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>
@@ -529,8 +537,8 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                                     <h3 className="font-medium text-gray-900 dark:text-white">
                                                         {watchedValues.name}
                                                     </h3>
-                                                    {watchedValues.hasDiscount &&
-                                                        watchedValues.discountPercentage >
+                                                    {watchedValues.has_discount &&
+                                                        watchedValues.discount_percentage >
                                                             0 && (
                                                             <Badge
                                                                 variant="destructive"
@@ -538,7 +546,7 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                                             >
                                                                 <Percent className="h-3 w-3 mr-1" />
                                                                 {
-                                                                    watchedValues.discountPercentage
+                                                                    watchedValues.discount_percentage
                                                                 }
                                                                 % OFF
                                                             </Badge>
@@ -551,12 +559,12 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                                                 finalPrice
                                                             )}
                                                         </span>
-                                                        {watchedValues.hasDiscount &&
-                                                            watchedValues.discountPercentage >
+                                                        {watchedValues.has_discount &&
+                                                            watchedValues.discount_percentage >
                                                                 0 && (
                                                                 <span className="line-through text-gray-400 text-xs">
                                                                     {formatRupiah(
-                                                                        watchedValues.originalPrice
+                                                                        watchedValues.original_price
                                                                     )}
                                                                 </span>
                                                             )}
@@ -567,7 +575,9 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                                     </span>
                                                     <span>•</span>
                                                     <span>
-                                                        {watchedValues.devices}{" "}
+                                                        {
+                                                            watchedValues.max_devices
+                                                        }{" "}
                                                         perangkat
                                                     </span>
                                                     <span>•</span>
@@ -582,8 +592,8 @@ const LicenseTypeForm: React.FC<LicenseTypeFormProps> = ({
                                                             : watchedValues.type}
                                                     </Badge>
                                                 </div>
-                                                {watchedValues.hasDiscount &&
-                                                    watchedValues.discountPercentage >
+                                                {watchedValues.has_discount &&
+                                                    watchedValues.discount_percentage >
                                                         0 && (
                                                         <div className="text-xs text-green-600 dark:text-green-400 mt-1">
                                                             💰 Hemat{" "}

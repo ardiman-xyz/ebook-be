@@ -6,82 +6,60 @@ import { Head, router } from "@inertiajs/react";
 import { BookOpen, Edit, Plus, Trash2, Percent, Package } from "lucide-react";
 import React, { useState } from "react";
 import LicenseTypeForm from "./_components/LicenseTypeForm";
+import axios from "axios";
+
+// Setup CSRF token
+axios.defaults.headers.common["X-CSRF-TOKEN"] =
+    document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute("content") || "";
 
 // TypeScript interfaces
 interface LicenseType {
     id: number;
+    code?: string;
     name: string;
     price: number;
-    originalPrice: number;
-    duration: string;
-    devices: number;
+    original_price: number;
+    duration?: string;
+    duration_text?: string;
+    max_devices: number;
     type: "Trial" | "Standard" | "Lifetime" | "Enterprise";
-    hasDiscount: boolean;
-    discountPercentage: number;
+    has_discount: boolean;
+    discount_percentage: number;
+    is_active: boolean;
+    description?: string;
+    formatted_price?: string;
+    formatted_original_price?: string;
+    savings_amount?: number;
+    is_discounted?: boolean;
+    currency?: string;
 }
 
-// Mock data dengan discount
-const mockLicenseTypes: LicenseType[] = [
-    {
-        id: 1,
-        name: "Demo License",
-        price: 0,
-        originalPrice: 299000,
-        duration: "7 days",
-        devices: 1,
-        type: "Trial",
-        hasDiscount: true,
-        discountPercentage: 100,
-    },
-    {
-        id: 2,
-        name: "Trial License",
-        price: 0,
-        originalPrice: 0,
-        duration: "1 month",
-        devices: 1,
-        type: "Trial",
-        hasDiscount: false,
-        discountPercentage: 0,
-    },
-    {
-        id: 3,
-        name: "Full License",
-        price: 562500, // 25% discount from 750000
-        originalPrice: 750000,
-        duration: "1 year",
-        devices: 3,
-        type: "Standard",
-        hasDiscount: true,
-        discountPercentage: 25,
-    },
-    {
-        id: 4,
-        name: "Lifetime License",
-        price: 2500000,
-        originalPrice: 2500000,
-        duration: "Lifetime",
-        devices: 5,
-        type: "Lifetime",
-        hasDiscount: false,
-        discountPercentage: 0,
-    },
-    {
-        id: 5,
-        name: "Enterprise License",
-        price: 2400000, // 20% discount from 3000000
-        originalPrice: 3000000,
-        duration: "3 years",
-        devices: 10,
-        type: "Enterprise",
-        hasDiscount: true,
-        discountPercentage: 20,
-    },
-];
+interface Stats {
+    total_types: number;
+    active_types: number;
+    with_discount: number;
+    avg_price: number;
+    total_savings: number;
+}
 
-const Index: React.FC = () => {
+interface IndexProps {
+    licenseTypes: LicenseType[];
+    stats: Stats;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+}
+
+const Index: React.FC<IndexProps> = ({
+    licenseTypes: initialLicenseTypes = [],
+    stats: initialStats,
+    flash,
+}) => {
     const [licenseTypes, setLicenseTypes] =
-        useState<LicenseType[]>(mockLicenseTypes);
+        useState<LicenseType[]>(initialLicenseTypes);
     const [showForm, setShowForm] = useState<boolean>(false);
     const [editingLicenseType, setEditingLicenseType] =
         useState<LicenseType | null>(null);
@@ -114,36 +92,92 @@ const Index: React.FC = () => {
     const handleFormSave = async (formData: LicenseType): Promise<void> => {
         setIsLoading(true);
 
-        // console.info(formData);
+        try {
+            // Prepare data untuk backend
+            const requestData = {
+                name: formData.name,
+                original_price: formData.original_price,
+                has_discount: formData.has_discount,
+                discount_percentage: formData.discount_percentage,
+                duration: formData.duration,
+                max_devices: formData.max_devices,
+                type: formData.type,
+                description: formData.description || "",
+                features: [],
+                restrictions: [],
+                is_active: true,
+            };
 
-        // try {
-        //     // Simulate API call delay
-        //     await new Promise((resolve) => setTimeout(resolve, 1000));
+            let response;
 
-        //     if (editingLicenseType) {
-        //         // Edit existing
-        //         setLicenseTypes((prev) =>
-        //             prev.map((lt) =>
-        //                 lt.id === editingLicenseType.id
-        //                     ? { ...formData, id: editingLicenseType.id }
-        //                     : lt
-        //             )
-        //         );
-        //     } else {
-        //         // Add new
-        //         const newId = Math.max(...licenseTypes.map((lt) => lt.id)) + 1;
-        //         setLicenseTypes((prev) => [
-        //             ...prev,
-        //             { ...formData, id: newId },
-        //         ]);
-        //     }
+            if (editingLicenseType) {
+                // Update existing
+                response = await axios.put(
+                    `/admin/${editingLicenseType.id}`,
+                    requestData
+                );
+            } else {
+                // Create new
+                response = await axios.post("/admin/", requestData);
+            }
 
-        //     handleFormClose();
-        // } catch (error) {
-        //     console.error("Error saving license type:", error);
-        // } finally {
-        //     setIsLoading(false);
-        // }
+            // Update state dengan data dari backend
+            if (editingLicenseType) {
+                setLicenseTypes((prev) =>
+                    prev.map((lt) =>
+                        lt.id === editingLicenseType.id
+                            ? {
+                                  ...response.data.data,
+                                  price: parseFloat(response.data.data.price),
+                                  original_price: parseFloat(
+                                      response.data.data.original_price
+                                  ),
+                                  discount_percentage: parseFloat(
+                                      response.data.data.discount_percentage
+                                  ),
+                                  has_discount:
+                                      !!response.data.data.has_discount,
+                                  duration:
+                                      response.data.data.duration_text ||
+                                      response.data.data.duration,
+                              }
+                            : lt
+                    )
+                );
+            } else {
+                const newLicenseType = {
+                    ...response.data.data,
+                    price: parseFloat(response.data.data.price),
+                    original_price: parseFloat(
+                        response.data.data.original_price
+                    ),
+                    discount_percentage: parseFloat(
+                        response.data.data.discount_percentage
+                    ),
+                    has_discount: !!response.data.data.has_discount,
+                    duration:
+                        response.data.data.duration_text ||
+                        response.data.data.duration,
+                };
+                setLicenseTypes((prev) => [...prev, newLicenseType]);
+            }
+
+            handleFormClose();
+            alert("License type saved successfully!");
+        } catch (error: any) {
+            console.error("Error saving license type:", error);
+
+            if (error.response?.status === 422) {
+                // Validation errors
+                const errors = error.response.data.errors;
+                const errorMessages = Object.values(errors).flat().join(", ");
+                alert(`Validation errors: ${errorMessages}`);
+            } else {
+                alert("Failed to save license type. Please try again.");
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleFormClose = (): void => {
@@ -151,9 +185,26 @@ const Index: React.FC = () => {
         setEditingLicenseType(null);
     };
 
-    const handleDelete = (id: number): void => {
-        if (confirm("Are you sure you want to delete this license type?")) {
+    const handleDelete = async (id: number): Promise<void> => {
+        if (!confirm("Are you sure you want to delete this license type?")) {
+            return;
+        }
+
+        try {
+            await axios.delete(`/admin/${id}`);
             setLicenseTypes((prev) => prev.filter((lt) => lt.id !== id));
+            alert("License type deleted successfully!");
+        } catch (error: any) {
+            console.error("Error deleting license type:", error);
+
+            if (error.response?.status === 400) {
+                alert(
+                    error.response.data.message ||
+                        "Cannot delete this license type"
+                );
+            } else {
+                alert("Failed to delete license type. Please try again.");
+            }
         }
     };
 
@@ -228,6 +279,19 @@ const Index: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Flash Messages */}
+                    {flash?.success && (
+                        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+                            {flash.success}
+                        </div>
+                    )}
+
+                    {flash?.error && (
+                        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+                            {flash.error}
+                        </div>
+                    )}
+
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -259,8 +323,8 @@ const Index: React.FC = () => {
                                         {
                                             licenseTypes.filter(
                                                 (lt) =>
-                                                    lt.hasDiscount &&
-                                                    lt.discountPercentage > 0
+                                                    lt.has_discount &&
+                                                    lt.discount_percentage > 0
                                             ).length
                                         }
                                     </p>
@@ -280,12 +344,15 @@ const Index: React.FC = () => {
                                         Avg. Price
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {formatRupiah(
-                                            licenseTypes.reduce(
-                                                (sum, lt) => sum + lt.price,
-                                                0
-                                            ) / licenseTypes.length
-                                        )}
+                                        {licenseTypes.length > 0
+                                            ? formatRupiah(
+                                                  licenseTypes.reduce(
+                                                      (sum, lt) =>
+                                                          sum + lt.price,
+                                                      0
+                                                  ) / licenseTypes.length
+                                              )
+                                            : "Rp 0"}
                                     </p>
                                 </div>
                             </div>
@@ -307,9 +374,9 @@ const Index: React.FC = () => {
                                             licenseTypes.reduce(
                                                 (sum, lt) =>
                                                     sum +
-                                                    (lt.hasDiscount
+                                                    (lt.has_discount
                                                         ? calculateSavings(
-                                                              lt.originalPrice,
+                                                              lt.original_price,
                                                               lt.price
                                                           )
                                                         : 0),
@@ -365,8 +432,8 @@ const Index: React.FC = () => {
                                                                     licenseType.name
                                                                 }
                                                             </h3>
-                                                            {licenseType.hasDiscount &&
-                                                                licenseType.discountPercentage >
+                                                            {licenseType.has_discount &&
+                                                                licenseType.discount_percentage >
                                                                     0 && (
                                                                     <Badge
                                                                         variant="destructive"
@@ -374,7 +441,7 @@ const Index: React.FC = () => {
                                                                     >
                                                                         <Percent className="h-3 w-3 mr-1" />
                                                                         {
-                                                                            licenseType.discountPercentage
+                                                                            licenseType.discount_percentage
                                                                         }
                                                                         % OFF
                                                                     </Badge>
@@ -387,26 +454,26 @@ const Index: React.FC = () => {
                                                                         licenseType.price
                                                                     )}
                                                                 </span>
-                                                                {licenseType.hasDiscount &&
-                                                                    licenseType.discountPercentage >
+                                                                {licenseType.has_discount &&
+                                                                    licenseType.discount_percentage >
                                                                         0 && (
                                                                         <span className="line-through text-gray-400 text-xs">
                                                                             {formatRupiah(
-                                                                                licenseType.originalPrice
+                                                                                licenseType.original_price
                                                                             )}
                                                                         </span>
                                                                     )}
                                                             </div>
                                                             <span>•</span>
                                                             <span>
-                                                                {
-                                                                    licenseType.duration
-                                                                }
+                                                                {licenseType.duration ||
+                                                                    licenseType.duration_text ||
+                                                                    "No duration"}
                                                             </span>
                                                             <span>•</span>
                                                             <span>
                                                                 {
-                                                                    licenseType.devices
+                                                                    licenseType.max_devices
                                                                 }{" "}
                                                                 devices
                                                             </span>
@@ -421,14 +488,14 @@ const Index: React.FC = () => {
                                                                 }
                                                             </Badge>
                                                         </div>
-                                                        {licenseType.hasDiscount &&
-                                                            licenseType.discountPercentage >
+                                                        {licenseType.has_discount &&
+                                                            licenseType.discount_percentage >
                                                                 0 && (
                                                                 <div className="text-xs text-green-600 dark:text-green-400 mt-1">
                                                                     💰 Save{" "}
                                                                     {formatRupiah(
                                                                         calculateSavings(
-                                                                            licenseType.originalPrice,
+                                                                            licenseType.original_price,
                                                                             licenseType.price
                                                                         )
                                                                     )}
