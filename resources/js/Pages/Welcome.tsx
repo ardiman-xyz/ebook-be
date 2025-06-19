@@ -340,26 +340,14 @@ const HeroSection: React.FC = () => {
                             </p>
                         </div>
 
-                        <div className="flex items-center space-x-6 text-sm text-gray-600">
-                            <div className="flex items-center space-x-2">
-                                <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                                <span className="font-medium">4.9/5</span>
-                                <span>(2,847 ulasan)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Download className="w-5 h-5 text-blue-600" />
-                                <span>12,350+ download</span>
-                            </div>
-                        </div>
-
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Button
-                                size="lg"
-                                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8"
+                            <a
+                                href="/downloads"
+                                className="flex items-center rounded bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8"
                             >
                                 <Download className="mr-2 h-5 w-5" />
-                                Beli Sekarang - Rp 149.000
-                            </Button>
+                                Download Sekarang
+                            </a>
                             <Button
                                 variant="outline"
                                 size="lg"
@@ -368,21 +356,6 @@ const HeroSection: React.FC = () => {
                             >
                                 <Eye className="mr-2 h-5 w-5" />
                                 Preview Gratis
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="lg"
-                                onClick={handleLike}
-                                className={`px-6 ${
-                                    isLiked ? "text-red-600" : "text-gray-600"
-                                }`}
-                            >
-                                <Heart
-                                    className={`mr-2 h-5 w-5 ${
-                                        isLiked ? "fill-current" : ""
-                                    }`}
-                                />
-                                {likes}
                             </Button>
                         </div>
 
@@ -649,7 +622,7 @@ const EbookLandingPage: React.FC = () => {
                         <HeroSection />
                         <FeaturesSection />
                         <PricingSection />
-                        <StatsSection />
+                        {/* <StatsSection /> */}
                     </main>
 
                     <Footer />

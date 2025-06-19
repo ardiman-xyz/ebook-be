@@ -105,13 +105,14 @@ class DownloadController extends Controller
                 'name' => 'Android',
                 'description' => 'Compatible with Android 8.0 and later',
                 'version' => '1.0.0',
-                'size' => '28.5 MB',
-                'filename' => 'android.zip',
-                'path' => 'inobel/app/android.zip',
+                'size' => '177 MB',
+                'filename' => 'INOBEL-Android.apk',
                 'icon' => 'android',
                 'requirements' => ['Android 8.0+', '2GB RAM', '200MB storage'],
                 'release_date' => '2025-06-16',
-                'download_count' => 0,
+                'download_count' => 15680,
+                'google_drive_url' => 'https://drive.google.com/uc?export=download&id=1CPfLtX3Necv3bsiKdPMA8LRyMH62C3HR',
+                'is_external' => true,
                
             ]
         ];

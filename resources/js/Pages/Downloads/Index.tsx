@@ -397,57 +397,7 @@ export default function DownloadPage({
     };
 
     return (
-        <PublicLayout
-            showLoginButton={!auth?.user}
-            header={
-                <div className="text-center space-y-6">
-                    <div className="flex items-center justify-center space-x-4 mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center">
-                            <Download className="w-8 h-8 text-white" />
-                        </div>
-                        <div className="text-left">
-                            <h1 className="text-3xl font-bold text-gray-900">
-                                Download INOBEL
-                            </h1>
-                            <p className="text-gray-600">
-                                Get the latest version for your platform
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-center space-x-6 text-sm">
-                        <div className="flex items-center space-x-2">
-                            <Badge
-                                variant="outline"
-                                className="bg-green-50 text-green-700 border-green-200"
-                            >
-                                <Zap className="w-3 h-3 mr-1" />
-                                Latest: v{stats.latest_version}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Badge
-                                variant="outline"
-                                className="bg-blue-50 text-blue-700 border-blue-200"
-                            >
-                                <Heart className="w-3 h-3 mr-1" />
-                                {stats.total_downloads.toLocaleString()}{" "}
-                                downloads
-                            </Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Badge
-                                variant="outline"
-                                className="bg-purple-50 text-purple-700 border-purple-200"
-                            >
-                                <Shield className="w-3 h-3 mr-1" />
-                                Secure & Verified
-                            </Badge>
-                        </div>
-                    </div>
-                </div>
-            }
-        >
+        <PublicLayout>
             <Head title="Downloads - INOBEL" />
 
             <div className="py-12">
