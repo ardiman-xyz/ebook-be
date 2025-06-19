@@ -73,12 +73,13 @@ class DownloadController extends Controller
                 'version' => '1.0.0',
                 'size' => '305 MB',
                 'filename' => 'windows.zip',
-                'path' => 'inobel/app/windows.zip',
                 'icon' => 'windows',
                 'requirements' => ['Windows 10 or later', '4GB RAM', '500MB storage'],
                 'release_date' => '2025-06-16',
                 'download_count' => 0,
-               
+                // Corrected Windows file ID
+                'google_drive_url' => 'https://drive.google.com/uc?export=download&id=1N_ITxZg8ZeOFTKm65ztyPqgk5u7vTfz6',
+                'is_external' => true,
             ],
             [
                 'id' => 'linux-x64',
@@ -89,12 +90,13 @@ class DownloadController extends Controller
                 'version' => '1.0.0',
                 'size' => '298 MB',
                 'filename' => 'linux.zip',
-                'path' => 'inobel/app/linux.zip',
                 'icon' => 'linux',
                 'requirements' => ['Linux kernel 4.0+', '4GB RAM', '500MB storage'],
                 'release_date' => '2025-06-16',
                 'download_count' => 0,
-               
+                // Previous link yang tadi (untuk Linux)
+                'google_drive_url' => 'https://drive.google.com/uc?export=download&id=1pKacbzRbSrjg4IMEKAbU5kUW1C5IBx6i',
+                'is_external' => true,
             ],
             [
                 'id' => 'android',
